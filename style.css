@@ -1287,4 +1287,12 @@ $("#parseURL").addEventListener(
 console.log(
   "%cOSINT.WEB V3 ONLINE",
   "color:#55e6a5;font-weight:bold"
-);
+
+);body {
+    background: #05070b !important;
+    color: white !important;
+}
+
+h1 {
+    color: #00ff9d !important;
+}
