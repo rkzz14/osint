@@ -1,468 +1,435 @@
-* {
-  box-sizing: border-box;
-}
+<!DOCTYPE html>
+<html lang="fr">
 
-:root {
-  --background: #080b10;
-  --card: #10151d;
-  --card-dark: #0b1017;
-  --border: #202a37;
-  --text: #edf3f8;
-  --muted: #8793a3;
-  --green: #35d07f;
-}
+<head>
 
-body {
-  margin: 0;
-  min-height: 100vh;
+    <meta charset="UTF-8">
 
-  background:
-    radial-gradient(
-      circle at 50% -20%,
-      #163524,
-      var(--background) 45%
-    );
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-  color: var(--text);
+    <meta name="theme-color"
+          content="#070b10">
 
-  font-family:
-    Arial,
-    Helvetica,
-    sans-serif;
-}
+    <title>OSINT.WEB V3</title>
 
+    <link rel="stylesheet"
+          href="style.css">
 
-/* HEADER */
+</head>
 
-header {
-  height: 65px;
 
-  padding: 0 5%;
+<body>
 
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 
-  border-bottom: 1px solid var(--border);
+<!-- TOP BAR -->
 
-  background: rgba(8, 11, 16, 0.92);
+<header class="topbar">
 
-  backdrop-filter: blur(10px);
+    <div class="brand">
 
-  position: sticky;
-  top: 0;
+        <div class="brand-icon">
+            ◉
+        </div>
 
-  z-index: 10;
-}
+        <div>
+            <strong>OSINT</strong><span>.WEB</span>
+        </div>
 
+    </div>
 
-.logo {
-  font-weight: 900;
-  letter-spacing: 2px;
-  font-size: 16px;
-}
 
+    <div class="top-status">
 
-.dot {
-  color: var(--green);
+        <span class="status-dot"></span>
 
-  text-shadow:
-    0 0 10px rgba(53, 208, 127, 0.8);
-}
+        SYSTEM ONLINE
 
+    </div>
 
-.muted {
-  color: var(--muted);
-}
+</header>
 
 
-.status {
-  color: var(--green);
 
-  font-size: 11px;
+<!-- LAYOUT -->
 
-  font-weight: bold;
+<div class="layout">
 
-  letter-spacing: 1px;
-}
 
+    <!-- SIDEBAR -->
 
-/* MAIN */
+    <aside class="sidebar">
 
-main {
-  width: 92%;
+        <div class="side-title">
+            TOOLS
+        </div>
 
-  max-width: 950px;
 
-  margin: auto;
+        <button class="nav active"
+                data-page="dashboard">
 
-  padding: 65px 0 40px;
-}
+            <span>⌂</span>
+            Dashboard
 
+        </button>
 
-/* HERO */
 
-.hero {
-  text-align: center;
+        <button class="nav"
+                data-page="identity">
 
-  margin-bottom: 40px;
-}
+            <span>◉</span>
+            Identity
 
+        </button>
 
-.eyebrow {
-  color: var(--green);
 
-  font-size: 12px;
+        <button class="nav"
+                data-page="network">
 
-  font-weight: bold;
+            <span>◈</span>
+            Network
 
-  letter-spacing: 4px;
-}
+        </button>
 
 
-.hero h1 {
-  margin: 10px 0;
+        <button class="nav"
+                data-page="images">
 
-  font-size: clamp(42px, 11vw, 78px);
+            <span>▣</span>
+            Images
 
-  letter-spacing: -4px;
+        </button>
 
-  line-height: 1;
-}
 
+        <button class="nav"
+                data-page="dorks">
 
-.hero h2 {
-  margin: 15px 0 0;
+            <span>⌕</span>
+            Dorks
 
-  color: var(--muted);
+        </button>
 
-  font-size: 15px;
 
-  font-weight: normal;
-}
+        <button class="nav"
+                data-page="utilities">
 
+            <span>⚙</span>
+            Utilities
 
-/* SEARCH BOX */
+        </button>
 
-.search-box {
-  padding: 18px;
 
-  background: rgba(16, 21, 29, 0.97);
+        <div class="side-separator"></div>
 
-  border: 1px solid var(--border);
 
-  border-radius: 18px;
+        <div class="side-title">
+            HISTORY
+        </div>
 
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.25);
-}
 
+        <div id="history"
+             class="history">
 
-/* TABS */
+            <div class="empty-history">
+                No searches yet
+            </div>
 
-.tabs {
-  display: grid;
+        </div>
 
-  grid-template-columns:
-    repeat(4, 1fr);
 
-  gap: 8px;
+    </aside>
 
-  margin-bottom: 25px;
-}
 
 
-.tab {
-  padding: 13px 7px;
+    <!-- CONTENT -->
 
-  border: 1px solid var(--border);
+    <main class="content">
 
-  border-radius: 10px;
 
-  background: var(--card-dark);
+        <!-- DASHBOARD -->
 
-  color: var(--muted);
+        <section id="dashboard"
+                 class="page active-page">
 
-  font-weight: bold;
 
-  cursor: pointer;
+            <div class="page-head">
 
-  transition: 0.15s;
-}
+                <div>
 
+                    <div class="eyebrow">
+                        OPEN SOURCE INTELLIGENCE
+                    </div>
 
-.tab:hover {
-  border-color: var(--green);
+                    <h1>
+                        Investigation
+                    </h1>
 
-  color: white;
-}
+                    <p>
+                        Recherche rapide à partir de sources publiques.
+                    </p>
 
+                </div>
 
-.tab.active {
-  background: #123322;
 
-  border-color: var(--green);
+                <div class="clock"
+                     id="clock">
 
-  color: white;
+                    --:--:--
 
-  box-shadow:
-    0 0 15px rgba(53, 208, 127, 0.08);
-}
+                </div>
 
+            </div>
 
-/* INPUT */
 
-label {
-  display: block;
 
-  margin-bottom: 8px;
+            <!-- SEARCH -->
 
-  font-size: 13px;
+            <div class="main-search">
 
-  font-weight: bold;
-}
+                <div class="search-icon">
+                    ⌕
+                </div>
 
+                <input id="globalSearch"
+                       type="text"
+                       placeholder="Rechercher un pseudo, e-mail, domaine, IP...">
 
-.search {
-  display: flex;
+                <select id="globalType">
 
-  gap: 10px;
-}
+                    <option value="username">
+                        Username
+                    </option>
 
+                    <option value="email">
+                        E-mail
+                    </option>
 
-input {
-  flex: 1;
+                    <option value="domain">
+                        Domaine
+                    </option>
 
-  min-width: 0;
+                    <option value="ip">
+                        IP
+                    </option>
 
-  padding: 15px;
+                    <option value="url">
+                        URL
+                    </option>
 
-  border-radius: 10px;
+                </select>
 
-  border: 1px solid var(--border);
 
-  background: #080b10;
+                <button id="globalButton">
+                    SEARCH
+                </button>
 
-  color: white;
+            </div>
 
-  font-size: 15px;
 
-  outline: none;
-}
 
+            <!-- QUICK TOOLS -->
 
-input:focus {
-  border-color: var(--green);
+            <div class="section-heading">
 
-  box-shadow:
-    0 0 0 3px rgba(53, 208, 127, 0.08);
-}
+                <h2>
+                    Quick tools
+                </h2>
 
+            </div>
 
-#searchButton {
-  padding: 0 22px;
 
-  border: none;
+            <div class="tool-grid">
 
-  border-radius: 10px;
 
-  background: var(--green);
+                <button class="tool-card"
+                        data-open="identity">
 
-  color: #061109;
+                    <div class="tool-icon green">
+                        ◉
+                    </div>
 
-  font-weight: 900;
+                    <div>
 
-  cursor: pointer;
+                        <strong>
+                            Identity
+                        </strong>
 
-  transition: 0.15s;
-}
+                        <small>
+                            Username / E-mail
+                        </small>
 
+                    </div>
 
-#searchButton:hover {
-  background: #55df94;
+                </button>
 
-  transform: translateY(-1px);
-}
 
 
-#hint {
-  display: block;
+                <button class="tool-card"
+                        data-open="network">
 
-  margin-top: 10px;
+                    <div class="tool-icon blue">
+                        ◈
+                    </div>
 
-  color: var(--muted);
+                    <div>
 
-  font-size: 12px;
-}
+                        <strong>
+                            Network
+                        </strong>
 
+                        <small>
+                            IP / Domain / URL
+                        </small>
 
-/* RESULTS */
+                    </div>
 
-.results {
-  margin-top: 38px;
-}
+                </button>
 
 
-.hidden {
-  display: none;
-}
 
+                <button class="tool-card"
+                        data-open="images">
 
-.result-header {
-  display: flex;
+                    <div class="tool-icon purple">
+                        ▣
+                    </div>
 
-  align-items: center;
+                    <div>
 
-  justify-content: space-between;
+                        <strong>
+                            Images
+                        </strong>
 
-  margin-bottom: 14px;
-}
+                        <small>
+                            Reverse image search
+                        </small>
 
+                    </div>
 
-.result-header h2 {
-  margin: 0;
+                </button>
 
-  font-size: 21px;
-}
 
 
-#clearButton {
-  padding: 9px 14px;
+                <button class="tool-card"
+                        data-open="dorks">
 
-  border: 1px solid var(--border);
+                    <div class="tool-icon orange">
+                        ⌕
+                    </div>
 
-  border-radius: 9px;
+                    <div>
 
-  background: var(--card);
+                        <strong>
+                            Dork Generator
+                        </strong>
 
-  color: var(--muted);
+                        <small>
+                            Advanced search
+                        </small>
 
-  cursor: pointer;
-}
+                    </div>
 
+                </button>
 
-#clearButton:hover {
-  color: white;
 
-  border-color: var(--green);
-}
+            </div>
 
 
-/* RESULT CARDS */
 
-#resultGrid {
-  display: grid;
+            <!-- RESULT -->
 
-  grid-template-columns:
-    repeat(2, 1fr);
+            <div class="section-heading">
 
-  gap: 12px;
-}
+                <h2>
+                    Results
+                </h2>
 
+                <button id="clearResults"
+                        class="small-button">
 
-.result {
-  display: block;
+                    Clear
 
-  padding: 18px;
+                </button>
 
-  border: 1px solid var(--border);
+            </div>
 
-  border-radius: 13px;
 
-  background: var(--card);
+            <div id="results"
+                 class="results">
 
-  color: white;
+                <div class="empty-results">
 
-  text-decoration: none;
+                    <div class="empty-icon">
+                        ⌕
+                    </div>
 
-  transition: 0.15s;
-}
+                    <strong>
+                        No investigation started
+                    </strong>
 
+                    <span>
+                        Lance une recherche pour afficher les sources.
+                    </span>
 
-.result:hover {
-  transform: translateY(-3px);
+                </div>
 
-  border-color: var(--green);
+            </div>
 
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.2);
-}
 
+        </section>
 
-.result-name {
-  margin-bottom: 7px;
 
-  font-weight: bold;
 
-  font-size: 15px;
-}
 
+        <!-- IDENTITY -->
 
-.result-url {
-  color: var(--muted);
+        <section id="identity"
+                 class="page">
 
-  font-size: 12px;
-}
 
+            <div class="page-head">
 
-/* FOOTER */
+                <div>
 
-footer {
-  width: 92%;
+                    <div class="eyebrow">
+                        IDENTITY
+                    </div>
 
-  max-width: 950px;
+                    <h1>
+                        Identity Search
+                    </h1>
 
-  margin: auto;
+                    <p>
+                        Recherche publique de pseudos et d'adresses e-mail.
+                    </p>
 
-  padding: 25px 0 35px;
+                </div>
 
-  display: flex;
+            </div>
 
-  justify-content: space-between;
 
-  color: var(--muted);
+            <div class="module">
 
-  font-size: 11px;
-}
 
+                <div class="module-tabs">
 
-/* MOBILE */
+                    <button class="module-tab active"
+                            data-identity="username">
 
-@media (max-width: 650px) {
+                        Username
 
-  header {
-    padding: 0 4%;
-  }
+                    </button>
 
-  .status {
-    display: none;
-  }
 
-  main {
-    padding-top: 45px;
-  }
+                    <button class="module-tab"
+                            data-identity="email">
 
-  .tabs {
-    grid-template-columns:
-      repeat(2, 1fr);
-  }
+                        E-mail
 
-  .search {
-    flex-direction: column;
-  }
+                    </button>
 
-  #searchButton {
-    height: 48px;
-  }
+                </div>
 
-  #resultGrid {
-    grid-template-columns: 1fr;
-  }
 
-  footer {
-    flex-direction: column;
-
-    gap: 8px;
-  }
-
-}
+                <input id="identityInput"
+                       class="big
