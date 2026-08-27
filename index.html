@@ -1,435 +1,654 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta charset="UTF-8">
+  <meta name="description" content="OSINT.WEB - Open Source Intelligence Dashboard">
+  <meta name="theme-color" content="#080b12">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+  <title>OSINT.WEB — Intelligence Dashboard</title>
 
-    <meta name="theme-color"
-          content="#070b10">
-
-    <title>OSINT.WEB V3</title>
-
-    <link rel="stylesheet"
-          href="style.css">
-
+  <link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
-
-<!-- TOP BAR -->
-
-<header class="topbar">
-
-    <div class="brand">
-
-        <div class="brand-icon">
-            ◉
-        </div>
-
-        <div>
-            <strong>OSINT</strong><span>.WEB</span>
-        </div>
-
-    </div>
-
-
-    <div class="top-status">
-
-        <span class="status-dot"></span>
-
-        SYSTEM ONLINE
-
-    </div>
-
-</header>
-
-
-
-<!-- LAYOUT -->
-
-<div class="layout">
-
+  <div class="app">
 
     <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
 
-    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">◎</div>
 
-        <div class="side-title">
-            TOOLS
+        <div>
+          <strong>OSINT<span>.WEB</span></strong>
+          <small>SYSTEM ONLINE</small>
+        </div>
+      </div>
+
+      <div class="status">
+        <span class="status-dot"></span>
+        SYSTEM ONLINE
+      </div>
+
+      <nav class="navigation">
+
+        <button class="nav-item active" data-page="dashboard">
+          <span>⌂</span>
+          <div>
+            <b>Dashboard</b>
+            <small>Vue générale</small>
+          </div>
+        </button>
+
+        <button class="nav-item" data-page="identity">
+          <span>◉</span>
+          <div>
+            <b>Identity</b>
+            <small>Username / E-mail</small>
+          </div>
+        </button>
+
+        <button class="nav-item" data-page="network">
+          <span>◈</span>
+          <div>
+            <b>Network</b>
+            <small>IP / Domaine / URL</small>
+          </div>
+        </button>
+
+        <button class="nav-item" data-page="images">
+          <span>▣</span>
+          <div>
+            <b>Images</b>
+            <small>Recherche inversée</small>
+          </div>
+        </button>
+
+        <button class="nav-item" data-page="dorks">
+          <span>⌕</span>
+          <div>
+            <b>Dorks</b>
+            <small>Recherche avancée</small>
+          </div>
+        </button>
+
+        <button class="nav-item" data-page="utilities">
+          <span>⚙</span>
+          <div>
+            <b>Utilities</b>
+            <small>Outils rapides</small>
+          </div>
+        </button>
+
+      </nav>
+
+      <div class="sidebar-bottom">
+
+        <div class="mini-title">HISTORY</div>
+
+        <div id="historyList" class="history-list">
+          <div class="empty-history">
+            No searches yet
+          </div>
         </div>
 
-
-        <button class="nav active"
-                data-page="dashboard">
-
-            <span>⌂</span>
-            Dashboard
-
+        <button id="clearHistory" class="clear-history">
+          Clear history
         </button>
 
-
-        <button class="nav"
-                data-page="identity">
-
-            <span>◉</span>
-            Identity
-
-        </button>
-
-
-        <button class="nav"
-                data-page="network">
-
-            <span>◈</span>
-            Network
-
-        </button>
-
-
-        <button class="nav"
-                data-page="images">
-
-            <span>▣</span>
-            Images
-
-        </button>
-
-
-        <button class="nav"
-                data-page="dorks">
-
-            <span>⌕</span>
-            Dorks
-
-        </button>
-
-
-        <button class="nav"
-                data-page="utilities">
-
-            <span>⚙</span>
-            Utilities
-
-        </button>
-
-
-        <div class="side-separator"></div>
-
-
-        <div class="side-title">
-            HISTORY
-        </div>
-
-
-        <div id="history"
-             class="history">
-
-            <div class="empty-history">
-                No searches yet
-            </div>
-
-        </div>
-
+      </div>
 
     </aside>
 
+    <!-- MAIN -->
+    <main class="main">
+
+      <header class="topbar">
+
+        <button id="menuButton" class="menu-button">
+          ☰
+        </button>
+
+        <div class="top-title">
+          <span>OPEN SOURCE INTELLIGENCE</span>
+          <strong>Investigation Center</strong>
+        </div>
+
+        <div class="top-actions">
+          <div class="clock" id="clock">--:--:--</div>
+        </div>
+
+      </header>
 
 
-    <!-- CONTENT -->
-
-    <main class="content">
-
+      <section class="content">
 
         <!-- DASHBOARD -->
+        <section id="dashboard" class="page active">
 
-        <section id="dashboard"
-                 class="page active-page">
+          <div class="hero">
 
+            <div>
+              <div class="eyebrow">OPEN SOURCE INTELLIGENCE</div>
 
-            <div class="page-head">
+              <h1>
+                Investigation
+                <span>simplifiée.</span>
+              </h1>
 
-                <div>
-
-                    <div class="eyebrow">
-                        OPEN SOURCE INTELLIGENCE
-                    </div>
-
-                    <h1>
-                        Investigation
-                    </h1>
-
-                    <p>
-                        Recherche rapide à partir de sources publiques.
-                    </p>
-
-                </div>
-
-
-                <div class="clock"
-                     id="clock">
-
-                    --:--:--
-
-                </div>
-
+              <p>
+                Recherche rapide à partir de sources publiques.
+                Sélectionne un outil pour commencer.
+              </p>
             </div>
 
-
-
-            <!-- SEARCH -->
-
-            <div class="main-search">
-
-                <div class="search-icon">
-                    ⌕
-                </div>
-
-                <input id="globalSearch"
-                       type="text"
-                       placeholder="Rechercher un pseudo, e-mail, domaine, IP...">
-
-                <select id="globalType">
-
-                    <option value="username">
-                        Username
-                    </option>
-
-                    <option value="email">
-                        E-mail
-                    </option>
-
-                    <option value="domain">
-                        Domaine
-                    </option>
-
-                    <option value="ip">
-                        IP
-                    </option>
-
-                    <option value="url">
-                        URL
-                    </option>
-
-                </select>
-
-
-                <button id="globalButton">
-                    SEARCH
-                </button>
-
+            <div class="hero-orb">
+              <div class="orb-inner">
+                OSINT
+              </div>
             </div>
 
+          </div>
 
 
-            <!-- QUICK TOOLS -->
+          <div class="quick-grid">
 
-            <div class="section-heading">
+            <button class="quick-card" data-page="identity">
+              <div class="quick-icon">◉</div>
+              <div>
+                <strong>Identity Search</strong>
+                <p>Username ou adresse e-mail</p>
+              </div>
+              <span>→</span>
+            </button>
 
-                <h2>
-                    Quick tools
-                </h2>
+            <button class="quick-card" data-page="network">
+              <div class="quick-icon">◈</div>
+              <div>
+                <strong>Network Lookup</strong>
+                <p>IP, domaine ou URL</p>
+              </div>
+              <span>→</span>
+            </button>
 
+            <button class="quick-card" data-page="images">
+              <div class="quick-icon">▣</div>
+              <div>
+                <strong>Image Search</strong>
+                <p>Recherche d'image inversée</p>
+              </div>
+              <span>→</span>
+            </button>
+
+            <button class="quick-card" data-page="dorks">
+              <div class="quick-icon">⌕</div>
+              <div>
+                <strong>Dork Generator</strong>
+                <p>Créer des recherches avancées</p>
+              </div>
+              <span>→</span>
+            </button>
+
+          </div>
+
+
+          <div class="info-panel">
+
+            <div class="info-icon">ⓘ</div>
+
+            <div>
+              <strong>Utilisation responsable</strong>
+
+              <p>
+                OSINT.WEB utilise uniquement des informations et
+                services publics. Respecte la vie privée et les lois
+                applicables pendant tes recherches.
+              </p>
             </div>
 
-
-            <div class="tool-grid">
-
-
-                <button class="tool-card"
-                        data-open="identity">
-
-                    <div class="tool-icon green">
-                        ◉
-                    </div>
-
-                    <div>
-
-                        <strong>
-                            Identity
-                        </strong>
-
-                        <small>
-                            Username / E-mail
-                        </small>
-
-                    </div>
-
-                </button>
-
-
-
-                <button class="tool-card"
-                        data-open="network">
-
-                    <div class="tool-icon blue">
-                        ◈
-                    </div>
-
-                    <div>
-
-                        <strong>
-                            Network
-                        </strong>
-
-                        <small>
-                            IP / Domain / URL
-                        </small>
-
-                    </div>
-
-                </button>
-
-
-
-                <button class="tool-card"
-                        data-open="images">
-
-                    <div class="tool-icon purple">
-                        ▣
-                    </div>
-
-                    <div>
-
-                        <strong>
-                            Images
-                        </strong>
-
-                        <small>
-                            Reverse image search
-                        </small>
-
-                    </div>
-
-                </button>
-
-
-
-                <button class="tool-card"
-                        data-open="dorks">
-
-                    <div class="tool-icon orange">
-                        ⌕
-                    </div>
-
-                    <div>
-
-                        <strong>
-                            Dork Generator
-                        </strong>
-
-                        <small>
-                            Advanced search
-                        </small>
-
-                    </div>
-
-                </button>
-
-
-            </div>
-
-
-
-            <!-- RESULT -->
-
-            <div class="section-heading">
-
-                <h2>
-                    Results
-                </h2>
-
-                <button id="clearResults"
-                        class="small-button">
-
-                    Clear
-
-                </button>
-
-            </div>
-
-
-            <div id="results"
-                 class="results">
-
-                <div class="empty-results">
-
-                    <div class="empty-icon">
-                        ⌕
-                    </div>
-
-                    <strong>
-                        No investigation started
-                    </strong>
-
-                    <span>
-                        Lance une recherche pour afficher les sources.
-                    </span>
-
-                </div>
-
-            </div>
-
+          </div>
 
         </section>
 
 
-
-
         <!-- IDENTITY -->
+        <section id="identity" class="page">
 
-        <section id="identity"
-                 class="page">
+          <div class="page-heading">
+
+            <div>
+              <div class="eyebrow">IDENTITY</div>
+              <h2>Identity Search</h2>
+
+              <p>
+                Recherche un pseudo ou une adresse e-mail
+                à travers plusieurs sources publiques.
+              </p>
+            </div>
+
+          </div>
 
 
-            <div class="page-head">
+          <div class="tool-card">
 
-                <div>
+            <div class="input-tabs">
 
-                    <div class="eyebrow">
-                        IDENTITY
-                    </div>
+              <button class="type-tab active" data-type="username">
+                ◉ Username
+              </button>
 
-                    <h1>
-                        Identity Search
-                    </h1>
-
-                    <p>
-                        Recherche publique de pseudos et d'adresses e-mail.
-                    </p>
-
-                </div>
+              <button class="type-tab" data-type="email">
+                ✉ E-mail
+              </button>
 
             </div>
 
 
-            <div class="module">
+            <form id="identityForm">
+
+              <div class="search-box">
+
+                <input
+                  id="identityInput"
+                  type="text"
+                  autocomplete="off"
+                  placeholder="Exemple : kz4626"
+                  maxlength="100"
+                >
+
+                <button type="submit">
+                  SEARCH
+                </button>
+
+              </div>
+
+            </form>
 
 
-                <div class="module-tabs">
+            <div class="examples">
+              <button data-example="kz4626">kz4626</button>
+              <button data-example="example">example</button>
+            </div>
 
-                    <button class="module-tab active"
-                            data-identity="username">
-
-                        Username
-
-                    </button>
+          </div>
 
 
-                    <button class="module-tab"
-                            data-identity="email">
+          <div id="identityResults" class="results">
 
-                        E-mail
+            <div class="empty-state">
+              <div class="empty-icon">⌕</div>
+              <h3>No investigation started</h3>
+              <p>
+                Lance une recherche pour afficher les sources.
+              </p>
+            </div>
 
-                    </button>
+          </div>
 
-                </div>
+        </section>
 
 
-                <input id="identityInput"
-                       class="big
+        <!-- NETWORK -->
+        <section id="network" class="page">
+
+          <div class="page-heading">
+
+            <div>
+              <div class="eyebrow">NETWORK</div>
+              <h2>Network Lookup</h2>
+
+              <p>
+                Analyse une adresse IP, un domaine ou une URL.
+              </p>
+            </div>
+
+          </div>
+
+
+          <div class="tool-card">
+
+            <form id="networkForm">
+
+              <div class="search-box">
+
+                <input
+                  id="networkInput"
+                  type="text"
+                  autocomplete="off"
+                  placeholder="8.8.8.8 ou example.com"
+                  maxlength="300"
+                >
+
+                <button type="submit">
+                  ANALYZE
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+
+
+          <div id="networkResults" class="results">
+
+            <div class="empty-state">
+              <div class="empty-icon">◈</div>
+              <h3>Network analyzer ready</h3>
+              <p>
+                Entre une IP ou un domaine pour commencer.
+              </p>
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- IMAGES -->
+        <section id="images" class="page">
+
+          <div class="page-heading">
+
+            <div>
+              <div class="eyebrow">IMAGES</div>
+              <h2>Reverse Image Search</h2>
+
+              <p>
+                Ouvre une image dans plusieurs moteurs de recherche inversée.
+              </p>
+            </div>
+
+          </div>
+
+
+          <div class="tool-card">
+
+            <label class="upload-area" for="imageUrl">
+
+              <div class="upload-icon">▣</div>
+
+              <strong>Image URL</strong>
+
+              <span>
+                Colle l'URL publique d'une image
+              </span>
+
+            </label>
+
+
+            <div class="search-box">
+
+              <input
+                id="imageUrl"
+                type="url"
+                placeholder="https://example.com/image.jpg"
+              >
+
+              <button id="imageSearchButton">
+                SEARCH
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <div id="imageResults" class="results">
+
+            <div class="empty-state">
+              <div class="empty-icon">▣</div>
+              <h3>Reverse search ready</h3>
+              <p>
+                Les moteurs seront ouverts avec ton image.
+              </p>
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- DORKS -->
+        <section id="dorks" class="page">
+
+          <div class="page-heading">
+
+            <div>
+              <div class="eyebrow">SEARCH OPERATORS</div>
+              <h2>Dork Generator</h2>
+
+              <p>
+                Génère rapidement des recherches avancées.
+              </p>
+            </div>
+
+          </div>
+
+
+          <div class="tool-card">
+
+            <div class="form-grid">
+
+              <label>
+                <span>Recherche</span>
+
+                <input
+                  id="dorkQuery"
+                  type="text"
+                  placeholder="exemple.com"
+                >
+              </label>
+
+
+              <label>
+                <span>Type</span>
+
+                <select id="dorkType">
+
+                  <option value="site">
+                    Site spécifique
+                  </option>
+
+                  <option value="filetype">
+                    Type de fichier
+                  </option>
+
+                  <option value="intitle">
+                    Titre
+                  </option>
+
+                  <option value="inurl">
+                    URL
+                  </option>
+
+                  <option value="combined">
+                    Recherche combinée
+                  </option>
+
+                </select>
+
+              </label>
+
+
+              <label id="fileTypeContainer" class="hidden">
+                <span>Extension</span>
+
+                <select id="fileType">
+
+                  <option value="pdf">PDF</option>
+                  <option value="docx">DOCX</option>
+                  <option value="xlsx">XLSX</option>
+                  <option value="txt">TXT</option>
+                  <option value="log">LOG</option>
+
+                </select>
+
+              </label>
+
+            </div>
+
+
+            <button id="generateDork" class="primary-button">
+              GENERATE DORK
+            </button>
+
+
+            <div id="dorkOutput" class="dork-output hidden">
+
+              <div class="dork-top">
+                <span>GENERATED QUERY</span>
+
+                <button id="copyDork">
+                  COPY
+                </button>
+              </div>
+
+              <code id="dorkText"></code>
+
+              <button id="openDork" class="secondary-button">
+                OPEN IN GOOGLE
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <div class="dork-presets">
+
+            <button data-dork="site">
+              <strong>site:</strong>
+              <span>Limiter à un domaine</span>
+            </button>
+
+            <button data-dork="filetype">
+              <strong>filetype:</strong>
+              <span>Rechercher un type de fichier</span>
+            </button>
+
+            <button data-dork="intitle">
+              <strong>intitle:</strong>
+              <span>Rechercher dans les titres</span>
+            </button>
+
+            <button data-dork="inurl">
+              <strong>inurl:</strong>
+              <span>Rechercher dans les URLs</span>
+            </button>
+
+          </div>
+
+        </section>
+
+
+        <!-- UTILITIES -->
+        <section id="utilities" class="page">
+
+          <div class="page-heading">
+
+            <div>
+              <div class="eyebrow">UTILITIES</div>
+              <h2>Utilities</h2>
+
+              <p>
+                Petits outils utiles pour les investigations.
+              </p>
+            </div>
+
+          </div>
+
+
+          <div class="utility-grid">
+
+            <div class="utility-card">
+
+              <div class="utility-icon">⌁</div>
+
+              <h3>IP Validator</h3>
+
+              <p>
+                Vérifie si une valeur ressemble à une adresse IP.
+              </p>
+
+              <input
+                id="ipValidatorInput"
+                placeholder="192.168.1.1"
+              >
+
+              <button id="validateIP">
+                VALIDATE
+              </button>
+
+              <div id="ipValidationResult"></div>
+
+            </div>
+
+
+            <div class="utility-card">
+
+              <div class="utility-icon">✉</div>
+
+              <h3>E-mail Validator</h3>
+
+              <p>
+                Vérifie le format syntaxique d'une adresse.
+              </p>
+
+              <input
+                id="emailValidatorInput"
+                placeholder="test@example.com"
+              >
+
+              <button id="validateEmail">
+                VALIDATE
+              </button>
+
+              <div id="emailValidationResult"></div>
+
+            </div>
+
+
+            <div class="utility-card">
+
+              <div class="utility-icon">◈</div>
+
+              <h3>URL Parser</h3>
+
+              <p>
+                Affiche les différentes parties d'une URL.
+              </p>
+
+              <input
+                id="urlParserInput"
+                placeholder="https://example.com/test"
+              >
+
+              <button id="parseURL">
+                PARSE
+              </button>
+
+              <div id="urlParserResult"></div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+      </section>
+
+    </main>
+
+  </div>
+
+
+  <div id="toast" class="toast"></div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>                        
