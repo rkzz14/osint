@@ -998,98 +998,91 @@ console.log(
    
 );
 
-
 /* =========================
    SOCIAL SEARCH
 ========================= */
 
 const socialInput = document.getElementById("socialUsername");
-const socialSearchButton = document.getElementById("socialSearchButton");
-const socialResults = document.getElementById("socialResults");
 
-const socialLinks = {
-  instagram: "https://www.google.com/search?q=",
-  discord: "https://www.google.com/search?q=",
-  snapchat: "https://www.google.com/search?q=",
-  tiktok: "https://www.google.com/search?q="
+const socialUrls = {
+
+  instagram: (query) =>
+    "https://www.instagram.com/explore/search/keyword/?q=" +
+    encodeURIComponent(query),
+
+  tiktok: (query) =>
+    "https://www.tiktok.com/search?q=" +
+    encodeURIComponent(query),
+
+  snapchat: (query) =>
+    "https://www.snapchat.com/web/search?q=" +
+    encodeURIComponent(query),
+
+  discord: () =>
+    "https://discord.com/app"
 };
 
-document.querySelectorAll(".social-card").forEach(card => {
+
+/* =========================
+   RECHERCHE
+========================= */
+
+document.querySelectorAll(".social-card").forEach((card) => {
 
   card.addEventListener("click", () => {
 
-    const username = socialInput.value.trim();
+    const query = socialInput.value.trim();
 
-    if (!username) {
-      alert("Entre d'abord un pseudo.");
+    if (!query) {
+      alert("Entre un pseudo ou un nom/prénom.");
       socialInput.focus();
       return;
     }
 
-    const cleanUsername = username.replace(/^@/, "");
     const platform = card.dataset.social;
 
-    let query = "";
-
-    if (platform === "instagram") {
-      query = `site:instagram.com "${cleanUsername}"`;
+    if (!socialUrls[platform]) {
+      return;
     }
 
-    if (platform === "discord") {
-      query = `site:discord.com "${cleanUsername}"`;
-    }
+    const url = socialUrls[platform](query);
 
-    if (platform === "snapchat") {
-      query = `site:snapchat.com "${cleanUsername}"`;
-    }
+    /*
+      Ouvre directement le réseau demandé.
+    */
 
-    if (platform === "tiktok") {
-      query = `site:tiktok.com/@ "${cleanUsername}"`;
-    }
-
-    const url =
-      socialLinks[platform] +
-      encodeURIComponent(query);
-
-    socialResults.innerHTML = `
-      <div class="result-card">
-        <div>
-          <h3>Recherche ${platform}</h3>
-          <p>Pseudo recherché : <strong>${cleanUsername}</strong></p>
-        </div>
-
-        <button
-          type="button"
-          onclick="window.open('${url}', '_blank')"
-        >
-          OUVRIR
-        </button>
-      </div>
-    `;
-
-    window.open(url, "_blank");
+    window.open(
+      url,
+      "_blank",
+      "noopener,noreferrer"
+    );
 
   });
 
 });
 
 
+/* =========================
+   BOUTON SEARCH
+========================= */
+
+const socialSearchButton =
+  document.getElementById("socialSearchButton");
+
 if (socialSearchButton) {
 
   socialSearchButton.addEventListener("click", () => {
 
-    const username = socialInput.value.trim();
+    const query = socialInput.value.trim();
 
-    if (!username) {
-      alert("Entre un pseudo.");
+    if (!query) {
+      alert("Entre un pseudo ou un nom/prénom.");
       socialInput.focus();
       return;
     }
 
-    socialInput.focus();
-
     alert(
-      "Choisis maintenant Instagram, Discord, Snapchat ou TikTok."
+      "Choisis Instagram, Discord, Snapchat ou TikTok."
     );
 
   });
