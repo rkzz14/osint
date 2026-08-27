@@ -995,4 +995,103 @@ document.addEventListener(
 
 console.log(
   "OSINT.WEB V3 — SYSTEM ONLINE"
+   
 );
+
+
+/* =========================
+   SOCIAL SEARCH
+========================= */
+
+const socialInput = document.getElementById("socialUsername");
+const socialSearchButton = document.getElementById("socialSearchButton");
+const socialResults = document.getElementById("socialResults");
+
+const socialLinks = {
+  instagram: "https://www.google.com/search?q=",
+  discord: "https://www.google.com/search?q=",
+  snapchat: "https://www.google.com/search?q=",
+  tiktok: "https://www.google.com/search?q="
+};
+
+document.querySelectorAll(".social-card").forEach(card => {
+
+  card.addEventListener("click", () => {
+
+    const username = socialInput.value.trim();
+
+    if (!username) {
+      alert("Entre d'abord un pseudo.");
+      socialInput.focus();
+      return;
+    }
+
+    const cleanUsername = username.replace(/^@/, "");
+    const platform = card.dataset.social;
+
+    let query = "";
+
+    if (platform === "instagram") {
+      query = `site:instagram.com "${cleanUsername}"`;
+    }
+
+    if (platform === "discord") {
+      query = `site:discord.com "${cleanUsername}"`;
+    }
+
+    if (platform === "snapchat") {
+      query = `site:snapchat.com "${cleanUsername}"`;
+    }
+
+    if (platform === "tiktok") {
+      query = `site:tiktok.com/@ "${cleanUsername}"`;
+    }
+
+    const url =
+      socialLinks[platform] +
+      encodeURIComponent(query);
+
+    socialResults.innerHTML = `
+      <div class="result-card">
+        <div>
+          <h3>Recherche ${platform}</h3>
+          <p>Pseudo recherché : <strong>${cleanUsername}</strong></p>
+        </div>
+
+        <button
+          type="button"
+          onclick="window.open('${url}', '_blank')"
+        >
+          OUVRIR
+        </button>
+      </div>
+    `;
+
+    window.open(url, "_blank");
+
+  });
+
+});
+
+
+if (socialSearchButton) {
+
+  socialSearchButton.addEventListener("click", () => {
+
+    const username = socialInput.value.trim();
+
+    if (!username) {
+      alert("Entre un pseudo.");
+      socialInput.focus();
+      return;
+    }
+
+    socialInput.focus();
+
+    alert(
+      "Choisis maintenant Instagram, Discord, Snapchat ou TikTok."
+    );
+
+  });
+
+}
