@@ -58,6 +58,14 @@
             <small>IP / Domaine / URL</small>
           </div>
         </button>
+        
+        <button class="nav-item" data-page="socials">
+  <span>◎</span>
+  <div>
+    <b>Socials</b>
+    <small>Instagram / Discord / Snapchat / TikTok</small>
+  </div>
+        </button>
 
         <button class="nav-item" data-page="images">
           <span>▣</span>
@@ -346,6 +354,93 @@
           </div>
 
         </section>
+
+        <!-- SOCIALS -->
+<section id="socials" class="page">
+
+  <div class="page-heading">
+    <div>
+      <div class="eyebrow">SOCIAL INTELLIGENCE</div>
+      <h2>Social Search</h2>
+      <p>
+        Recherche un pseudo sur plusieurs réseaux sociaux publics.
+      </p>
+    </div>
+  </div>
+
+  <div class="tool-card">
+
+    <div class="search-box">
+
+      <input
+        id="socialUsername"
+        type="text"
+        autocomplete="off"
+        placeholder="Exemple : kz4626"
+        maxlength="100"
+      >
+
+      <button id="socialSearchButton" type="button">
+        SEARCH
+      </button>
+
+    </div>
+
+    <div class="social-grid">
+
+      <button class="social-card" data-social="instagram">
+        <span class="social-icon">◎</span>
+        <div>
+          <strong>Instagram</strong>
+          <small>Recherche publique</small>
+        </div>
+        <span class="social-arrow">→</span>
+      </button>
+
+      <button class="social-card" data-social="discord">
+        <span class="social-icon">◈</span>
+        <div>
+          <strong>Discord</strong>
+          <small>Recherche publique</small>
+        </div>
+        <span class="social-arrow">→</span>
+      </button>
+
+      <button class="social-card" data-social="snapchat">
+        <span class="social-icon">◇</span>
+        <div>
+          <strong>Snapchat</strong>
+          <small>Recherche publique</small>
+        </div>
+        <span class="social-arrow">→</span>
+      </button>
+
+      <button class="social-card" data-social="tiktok">
+        <span class="social-icon">♪</span>
+        <div>
+          <strong>TikTok</strong>
+          <small>Recherche publique</small>
+        </div>
+        <span class="social-arrow">→</span>
+      </button>
+
+    </div>
+
+  </div>
+
+  <div id="socialResults" class="results">
+
+    <div class="empty-state">
+      <div class="empty-icon">◎</div>
+      <h3>Social search ready</h3>
+      <p>
+        Entre un pseudo puis sélectionne un réseau.
+      </p>
+    </div>
+
+  </div>
+
+</section>
 
 
         <!-- IMAGES -->
