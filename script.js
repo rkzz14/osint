@@ -1063,26 +1063,91 @@ document.querySelectorAll(".social-card").forEach((card) => {
 
 
 /* =========================
-   BOUTON SEARCH
+   SOCIAL SEARCH
 ========================= */
 
-const socialSearchButton =
-  document.getElementById("socialSearchButton");
+const socialInput = document.getElementById("socialUsername");
+const socialSearchButton = document.getElementById("socialSearchButton");
+const socialCards = document.querySelectorAll(".social-card");
+
+const socialDomains = {
+  instagram: "instagram.com",
+  discord: "discord.com",
+  snapchat: "snapchat.com",
+  tiktok: "tiktok.com"
+};
+
+
+/* Recherche sur le réseau sélectionné */
+
+function searchSocial(platform) {
+
+  if (!socialInput) return;
+
+  const query = socialInput.value.trim();
+
+  if (!query) {
+    alert("Entre un pseudo ou un nom/prénom.");
+    socialInput.focus();
+    return;
+  }
+
+  const domain = socialDomains[platform];
+
+  if (!domain) return;
+
+  const googleQuery =
+    `site:${domain} "${query}"`;
+
+  const searchURL =
+    "https://www.google.com/search?q=" +
+    encodeURIComponent(googleQuery);
+
+  window.open(
+    searchURL,
+    "_blank",
+    "noopener,noreferrer"
+  );
+}
+
+
+/* Boutons Instagram / Discord / Snapchat / TikTok */
+
+socialCards.forEach((card) => {
+
+  card.addEventListener("click", (event) => {
+
+    event.preventDefault();
+
+    const platform = card.dataset.social;
+
+    searchSocial(platform);
+
+  });
+
+});
+
+
+/* Bouton SEARCH */
 
 if (socialSearchButton) {
 
-  socialSearchButton.addEventListener("click", () => {
+  socialSearchButton.addEventListener("click", (event) => {
 
-    const query = socialInput.value.trim();
+    event.preventDefault();
 
-    if (!query) {
+    if (!socialInput.value.trim()) {
+
       alert("Entre un pseudo ou un nom/prénom.");
+
       socialInput.focus();
+
       return;
+
     }
 
     alert(
-      "Choisis Instagram, Discord, Snapchat ou TikTok."
+      "Sélectionne Instagram, Discord, Snapchat ou TikTok."
     );
 
   });
