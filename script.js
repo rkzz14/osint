@@ -1,84 +1,302 @@
 const configs = {
 
   pseudo: {
+
     label: "Pseudo à rechercher",
+
     placeholder: "ex. shadow_42",
 
-    links: (q) => [
-      ["Google", `https://www.google.com/search?q=${encodeURIComponent('"' + q + '"')}`],
+    hint: "Recherche ce pseudo sur plusieurs sources publiques.",
 
-      ["Reddit", `https://www.reddit.com/search/?q=${encodeURIComponent(q)}`],
+    links: q => [
 
-      ["GitHub", `https://github.com/search?q=${encodeURIComponent(q)}&type=users`],
+      [
+        "Google",
+        `https://www.google.com/search?q=${encodeURIComponent('"' + q + '"')}`
+      ],
 
-      ["DuckDuckGo", `https://duckduckgo.com/?q=${encodeURIComponent('"' + q + '"')}`]
+      [
+        "Reddit",
+        `https://www.reddit.com/search/?q=${encodeURIComponent(q)}`
+      ],
+
+      [
+        "GitHub",
+        `https://github.com/search?q=${encodeURIComponent(q)}&type=users`
+      ],
+
+      [
+        "X / Twitter",
+        `https://x.com/search?q=${encodeURIComponent(q)}`
+      ],
+
+      [
+        "Instagram",
+        `https://www.google.com/search?q=${encodeURIComponent('site:instagram.com "' + q + '"')}`
+      ],
+
+      [
+        "TikTok",
+        `https://www.google.com/search?q=${encodeURIComponent('site:tiktok.com "' + q + '"')}`
+      ]
+
     ]
   },
+
 
   email: {
-    label: "Adresse e-mail à rechercher",
+
+    label: "Adresse e-mail",
+
     placeholder: "exemple@mail.com",
 
-    links: (q) => [
-      ["Google", `https://www.google.com/search?q=${encodeURIComponent('"' + q + '"')}`],
+    hint: "Recherche cette adresse sur des sources publiques.",
 
-      ["DuckDuckGo", `https://duckduckgo.com/?q=${encodeURIComponent('"' + q + '"')}`],
+    links: q => [
 
-      ["Have I Been Pwned", "https://haveibeenpwned.com/"],
+      [
+        "Google",
+        `https://www.google.com/search?q=${encodeURIComponent('"' + q + '"')}`
+      ],
 
-      ["Gravatar", `https://en.gravatar.com/site/check/${encodeURIComponent(q)}`]
+      [
+        "DuckDuckGo",
+        `https://duckduckgo.com/?q=${encodeURIComponent('"' + q + '"')}`
+      ],
+
+      [
+        "Have I Been Pwned",
+        "https://haveibeenpwned.com/"
+      ],
+
+      [
+        "Gravatar",
+        `https://en.gravatar.com/site/check/${encodeURIComponent(q)}`
+      ]
+
     ]
   },
 
+
   domain: {
-    label: "Domaine à analyser",
+
+    label: "Domaine",
+
     placeholder: "example.com",
 
-    links: (q) => {
+    hint: "Analyse rapide d'un domaine avec des services publics.",
 
-      let domain = q
-        .replace("https://", "")
-        .replace("http://", "")
+    links: q => {
+
+      const domain = q
+        .replace(/^https?:\/\//, "")
         .split("/")[0];
 
       return [
-        ["Google", `https://www.google.com/search?q=${encodeURIComponent("site:" + domain)}`],
 
-        ["ICANN Lookup", `https://lookup.icann.org/en/lookup?name=${encodeURIComponent(domain)}`],
+        [
+          "Google site:",
+          `https://www.google.com/search?q=${encodeURIComponent("site:" + domain)}`
+        ],
 
-        ["DNSlytics", `https://dnslytics.com/domain/${encodeURIComponent(domain)}`],
+        [
+          "ICANN Lookup",
+          `https://lookup.icann.org/en/lookup?name=${encodeURIComponent(domain)}`
+        ],
 
-        ["SecurityTrails", `https://securitytrails.com/domain/${encodeURIComponent(domain)}`]
+        [
+          "DNSlytics",
+          `https://dnslytics.com/domain/${encodeURIComponent(domain)}`
+        ],
+
+        [
+          "SecurityTrails",
+          `https://securitytrails.com/domain/${encodeURIComponent(domain)}`
+        ]
+
       ];
     }
   },
 
+
   url: {
-    label: "URL à analyser",
+
+    label: "URL",
+
     placeholder: "https://example.com",
 
-    links: (q) => [
-      ["Google", `https://www.google.com/search?q=${encodeURIComponent(q)}`],
+    hint: "Analyse une URL avec plusieurs services.",
 
-      ["VirusTotal", `https://www.virustotal.com/gui/search/${encodeURIComponent(q)}`],
+    links: q => [
 
-      ["URLScan", `https://urlscan.io/search/#${encodeURIComponent(q)}`],
+      [
+        "Google",
+        `https://www.google.com/search?q=${encodeURIComponent(q)}`
+      ],
 
-      ["Wayback Machine", `https://web.archive.org/web/*/${encodeURIComponent(q)}`]
+      [
+        "VirusTotal",
+        `https://www.virustotal.com/gui/search/${encodeURIComponent(q)}`
+      ],
+
+      [
+        "URLScan",
+        `https://urlscan.io/search/#${encodeURIComponent(q)}`
+      ],
+
+      [
+        "Wayback Machine",
+        `https://web.archive.org/web/*/${encodeURIComponent(q)}`
+      ]
+
+    ]
+  },
+
+
+  image: {
+
+    label: "URL d'une image",
+
+    placeholder: "https://example.com/image.jpg",
+
+    hint: "Recherche une image avec plusieurs moteurs.",
+
+    links: q => [
+
+      [
+        "Google Lens",
+        `https://lens.google.com/uploadbyurl?url=${encodeURIComponent(q)}`
+      ],
+
+      [
+        "TinEye",
+        `https://tineye.com/search?url=${encodeURIComponent(q)}`
+      ],
+
+      [
+        "Google Images",
+        `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q)}`
+      ]
+
+    ]
+  },
+
+
+  ip: {
+
+    label: "Adresse IP",
+
+    placeholder: "ex. 8.8.8.8",
+
+    hint: "Recherche publique autour d'une adresse IP.",
+
+    links: q => [
+
+      [
+        "Google",
+        `https://www.google.com/search?q=${encodeURIComponent('"' + q + '"')}`
+      ],
+
+      [
+        "AbuseIPDB",
+        `https://www.abuseipdb.com/check/${encodeURIComponent(q)}`
+      ],
+
+      [
+        "IPinfo",
+        `https://ipinfo.io/${encodeURIComponent(q)}`
+      ],
+
+      [
+        "VirusTotal",
+        `https://www.virustotal.com/gui/ip-address/${encodeURIComponent(q)}`
+      ]
+
+    ]
+  },
+
+
+  phone: {
+
+    label: "Numéro de téléphone",
+
+    placeholder: "+33 6 12 34 56 78",
+
+    hint: "Recherche publique du numéro sur le web.",
+
+    links: q => [
+
+      [
+        "Google",
+        `https://www.google.com/search?q=${encodeURIComponent('"' + q + '"')}`
+      ],
+
+      [
+        "DuckDuckGo",
+        `https://duckduckgo.com/?q=${encodeURIComponent('"' + q + '"')}`
+      ],
+
+      [
+        "Bing",
+        `https://www.bing.com/search?q=${encodeURIComponent('"' + q + '"')}`
+      ]
+
+    ]
+  },
+
+
+  dork: {
+
+    label: "Recherche Google avancée",
+
+    placeholder: "site:example.com filetype:pdf",
+
+    hint: "Entre directement une requête de recherche avancée.",
+
+    links: q => [
+
+      [
+        "Google",
+        `https://www.google.com/search?q=${encodeURIComponent(q)}`
+      ],
+
+      [
+        "Bing",
+        `https://www.bing.com/search?q=${encodeURIComponent(q)}`
+      ],
+
+      [
+        "DuckDuckGo",
+        `https://duckduckgo.com/?q=${encodeURIComponent(q)}`
+      ]
+
     ]
   }
+
 };
 
 
 let currentType = "pseudo";
 
+
 const tabs = document.querySelectorAll(".tab");
+
 const label = document.getElementById("label");
+
 const input = document.getElementById("query");
+
 const button = document.getElementById("searchButton");
+
 const results = document.getElementById("results");
+
 const grid = document.getElementById("resultGrid");
 
+const clearButton = document.getElementById("clearButton");
+
+const hint = document.getElementById("hint");
+
+
+/* CHANGEMENT D'OUTIL */
 
 tabs.forEach(tab => {
 
@@ -86,20 +304,31 @@ tabs.forEach(tab => {
 
     currentType = tab.dataset.type;
 
-    tabs.forEach(t => t.classList.remove("active"));
+    tabs.forEach(t => {
+      t.classList.remove("active");
+    });
 
     tab.classList.add("active");
 
-    label.textContent = configs[currentType].label;
+    label.textContent =
+      configs[currentType].label;
 
-    input.placeholder = configs[currentType].placeholder;
+    input.placeholder =
+      configs[currentType].placeholder;
+
+    hint.textContent =
+      configs[currentType].hint;
 
     input.value = "";
+
+    input.focus();
 
   });
 
 });
 
+
+/* RECHERCHE */
 
 button.addEventListener("click", search);
 
@@ -118,44 +347,77 @@ function search() {
   const value = input.value.trim();
 
   if (!value) {
+
     alert("Entre une recherche.");
+
     return;
   }
 
-  const links = configs[currentType].links(value);
+
+  const links =
+    configs[currentType].links(value);
+
 
   grid.innerHTML = "";
 
+
   links.forEach(([name, url]) => {
 
-    const element = document.createElement("a");
+    const element =
+      document.createElement("a");
+
 
     element.className = "result";
 
+
     element.href = url;
+
 
     element.target = "_blank";
 
-    element.rel = "noopener noreferrer";
+
+    element.rel =
+      "noopener noreferrer";
+
 
     element.innerHTML = `
+
       <div class="result-name">
         ${name} ↗
       </div>
 
       <div class="result-url">
-        Ouvrir la recherche publique
+        Ouvrir la source
       </div>
+
     `;
+
 
     grid.appendChild(element);
 
   });
 
+
   results.classList.remove("hidden");
+
 
   results.scrollIntoView({
     behavior: "smooth"
   });
 
 }
+
+
+/* EFFACER */
+
+clearButton.addEventListener("click", () => {
+
+  grid.innerHTML = "";
+
+  results.classList.add("hidden");
+
+  input.value = "";
+
+  input.focus();
+
+});
