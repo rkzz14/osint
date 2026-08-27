@@ -1,24 +1,11 @@
 "use strict";
 
-/*
-  OSINT.WEB V3
-  Front-end only.
-
-  IMPORTANT :
-  Ce site utilise uniquement des recherches publiques.
-  Il ne prétend pas avoir trouvé une information
-  lorsqu'aucun résultat réel n'a été obtenu.
-*/
-
-
 /* =========================
    HELPERS
 ========================= */
 
 const $ = (selector) => document.querySelector(selector);
-
 const $$ = (selector) => [...document.querySelectorAll(selector)];
-
 
 function escapeHTML(value) {
   const div = document.createElement("div");
@@ -26,14 +13,12 @@ function escapeHTML(value) {
   return div.innerHTML;
 }
 
-
 function showToast(message) {
   const toast = $("#toast");
 
   if (!toast) return;
 
   toast.textContent = message;
-
   toast.classList.add("show");
 
   clearTimeout(window.__toastTimer);
@@ -53,26 +38,19 @@ function updateClock() {
 
   if (!clock) return;
 
-  const now = new Date();
-
-  clock.textContent = now.toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit"
-  });
+  clock.textContent = new Date().toLocaleTimeString("fr-FR");
 }
 
 updateClock();
-
 setInterval(updateClock, 1000);
 
 
 /* =========================
-   SIDEBAR MOBILE
+   MOBILE MENU
 ========================= */
 
+const menuButton = $("#menuButton");
 const sidebar = $("#sidebar");
-const menuButton = $(".menu-button");
 
 if (menuButton && sidebar) {
   menuButton.addEventListener("click", () => {
@@ -85,29 +63,25 @@ if (menuButton && sidebar) {
    NAVIGATION
 ========================= */
 
-const navItems = $$(".nav-item");
-const pages = $$(".page");
+function openPage(pageId) {
+  const page = document.getElementById(pageId);
 
-function openPage(pageName) {
-  if (!pageName) return;
+  if (!page) return;
 
-  pages.forEach((page) => {
-    page.classList.toggle(
-      "active",
-      page.dataset.page === pageName
-    );
+  $$(".page").forEach((item) => {
+    item.classList.remove("active");
   });
 
-  navItems.forEach((item) => {
+  page.classList.add("active");
+
+  $$(".nav-item").forEach((item) => {
     item.classList.toggle(
       "active",
-      item.dataset.page === pageName
+      item.dataset.page === pageId
     );
   });
 
-  if (sidebar) {
-    sidebar.classList.remove("open");
-  }
+  sidebar?.classList.remove("open");
 
   window.scrollTo({
     top: 0,
@@ -116,42 +90,129 @@ function openPage(pageName) {
 }
 
 
-navItems.forEach((item) => {
-  item.addEventListener("click", () => {
-    openPage(item.dataset.page);
+/* SIDEBAR BUTTONS */
+
+$$(".nav-item").forEach((button) => {
+  button.addEventListener("click", () => {
+    openPage(button.dataset.page);
+  });
+});
+
+
+/* DASHBOARD QUICK BUTTONS */
+
+$$(".quick-card").forEach((button) => {
+  button.addEventListener("click", () => {
+    openPage(button.dataset.page);
   });
 });
 
 
 /* =========================
-   QUICK CARDS
+   HISTORY
 ========================= */
 
-$$("[data-open-page]").forEach((button) => {
-  button.addEventListener("click", () => {
-    openPage(button.dataset.openPage);
+const HISTORY_KEY = "osint_web_history_v3";
+
+function getHistory() {
+  try {
+    return JSON.parse(
+      localStorage.getItem(HISTORY_KEY)
+    ) || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(history) {
+  localStorage.setItem(
+    HISTORY_KEY,
+    JSON.stringify(history)
+  );
+}
+
+function addHistory(type, value) {
+  if (!value) return;
+
+  let history = getHistory();
+
+  history = history.filter(
+    (item) =>
+      !(item.type === type && item.value === value)
+  );
+
+  history.unshift({
+    type,
+    value,
+    time: Date.now()
   });
-});
+
+  saveHistory(history.slice(0, 20));
+
+  renderHistory();
+}
+
+function renderHistory() {
+  const container = $("#historyList");
+
+  if (!container) return;
+
+  const history = getHistory();
+
+  if (!history.length) {
+    container.innerHTML = `
+      <div class="empty-history">
+        No searches yet
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = history.map((item) => `
+    <div class="history-entry">
+      <span class="history-type">
+        ${item.type === "network" ? "◈" : "◉"}
+      </span>
+
+      <span>${escapeHTML(item.value)}</span>
+    </div>
+  `).join("");
+}
+
+renderHistory();
+
+
+/* CLEAR HISTORY */
+
+const clearHistory = $("#clearHistory");
+
+if (clearHistory) {
+  clearHistory.addEventListener("click", () => {
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistory();
+    showToast("Historique supprimé.");
+  });
+}
 
 
 /* =========================
-   IDENTITY SEARCH
+   IDENTITY
 ========================= */
 
 let identityType = "username";
 
-const typeTabs = $$(".type-tab");
+$$(".type-tab").forEach((button) => {
 
-typeTabs.forEach((tab) => {
-  tab.addEventListener("click", () => {
+  button.addEventListener("click", () => {
 
-    typeTabs.forEach((item) => {
-      item.classList.remove("active");
+    $$(".type-tab").forEach((tab) => {
+      tab.classList.remove("active");
     });
 
-    tab.classList.add("active");
+    button.classList.add("active");
 
-    identityType = tab.dataset.type || "username";
+    identityType =
+      button.dataset.type || "username";
 
     const input = $("#identityInput");
 
@@ -159,140 +220,115 @@ typeTabs.forEach((tab) => {
 
     if (identityType === "email") {
       input.placeholder = "exemple@email.com";
+      input.type = "email";
     } else {
-      input.placeholder = "Entrez un pseudo...";
+      input.placeholder = "Exemple : kz4626";
+      input.type = "text";
     }
   });
+
 });
 
 
-function searchIdentity() {
+/* IDENTITY SEARCH */
 
-  const input = $("#identityInput");
+const identityForm = $("#identityForm");
 
-  if (!input) return;
+if (identityForm) {
 
-  const value = input.value.trim();
+  identityForm.addEventListener("submit", (event) => {
 
-  if (!value) {
-    showToast("Entre un pseudo ou une adresse e-mail.");
-    input.focus();
-    return;
-  }
+    event.preventDefault();
 
-  addHistory(identityType, value);
+    const input = $("#identityInput");
+    const results = $("#identityResults");
 
-  const results = $("#identityResults");
+    if (!input || !results) return;
 
-  if (!results) return;
+    const value = input.value.trim();
 
-  const encoded = encodeURIComponent(value);
-
-  const label =
-    identityType === "email"
-      ? "Recherche publique e-mail"
-      : "Recherche publique username";
-
-  results.innerHTML = `
-    <div class="result-card">
-      <div class="result-left">
-        <div class="result-title">
-          <span>◉</span>
-          ${escapeHTML(label)}
-        </div>
-
-        <div class="result-url">
-          Requête : ${escapeHTML(value)}
-        </div>
-      </div>
-
-      <button
-        class="result-action"
-        data-search-url="https://www.google.com/search?q=${encoded}"
-      >
-        Ouvrir
-      </button>
-    </div>
-
-    <div class="result-card">
-      <div class="result-left">
-        <div class="result-title">
-          <span>◎</span>
-          Recherche DuckDuckGo
-        </div>
-
-        <div class="result-url">
-          Sources publiques indexées
-        </div>
-      </div>
-
-      <button
-        class="result-action"
-        data-search-url="https://duckduckgo.com/?q=${encoded}"
-      >
-        Ouvrir
-      </button>
-    </div>
-  `;
-
-  bindResultButtons();
-
-  showToast("Recherche préparée.");
-}
-
-
-const identitySearchButton = $("#identitySearch");
-
-if (identitySearchButton) {
-  identitySearchButton.addEventListener(
-    "click",
-    searchIdentity
-  );
-}
-
-
-const identityInput = $("#identityInput");
-
-if (identityInput) {
-  identityInput.addEventListener("keydown", (event) => {
-
-    if (event.key === "Enter") {
-      searchIdentity();
-    }
-
-  });
-}
-
-
-/* =========================
-   RESULT BUTTONS
-========================= */
-
-function bindResultButtons() {
-
-  $$("[data-search-url]").forEach((button) => {
-
-    button.addEventListener("click", () => {
-
-      const url = button.dataset.searchUrl;
-
-      if (!url) return;
-
-      window.open(
-        url,
-        "_blank",
-        "noopener,noreferrer"
+    if (!value) {
+      showToast(
+        identityType === "email"
+          ? "Entre une adresse e-mail."
+          : "Entre un pseudo."
       );
 
-    });
+      input.focus();
+      return;
+    }
 
+    addHistory(identityType, value);
+
+    const encoded =
+      encodeURIComponent(value);
+
+    const googleURL =
+      `https://www.google.com/search?q=${encoded}`;
+
+    const duckURL =
+      `https://duckduckgo.com/?q=${encoded}`;
+
+    results.innerHTML = `
+      <div class="result-card">
+
+        <div class="result-left">
+
+          <div class="result-title">
+            <span>◉</span>
+            Recherche Google
+          </div>
+
+          <div class="result-url">
+            Recherche publique pour :
+            ${escapeHTML(value)}
+          </div>
+
+        </div>
+
+        <button
+          class="result-action"
+          data-url="${googleURL}"
+        >
+          OUVRIR
+        </button>
+
+      </div>
+
+      <div class="result-card">
+
+        <div class="result-left">
+
+          <div class="result-title">
+            <span>◎</span>
+            DuckDuckGo
+          </div>
+
+          <div class="result-url">
+            Sources publiques indexées
+          </div>
+
+        </div>
+
+        <button
+          class="result-action"
+          data-url="${duckURL}"
+        >
+          OUVRIR
+        </button>
+
+      </div>
+    `;
+
+    bindResultButtons();
+
+    showToast("Recherche préparée.");
   });
+
 }
 
 
-/* =========================
-   EXAMPLE BUTTONS
-========================= */
+/* EXAMPLES */
 
 $$("[data-example]").forEach((button) => {
 
@@ -312,111 +348,116 @@ $$("[data-example]").forEach((button) => {
 
 
 /* =========================
-   NETWORK SEARCH
+   NETWORK
 ========================= */
 
-function searchNetwork() {
+const networkForm = $("#networkForm");
 
-  const input = $("#networkInput");
+if (networkForm) {
 
-  if (!input) return;
+  networkForm.addEventListener("submit", (event) => {
 
-  const value = input.value.trim();
+    event.preventDefault();
 
-  if (!value) {
-    showToast("Entre une IP, un domaine ou une URL.");
-    input.focus();
-    return;
-  }
+    const input = $("#networkInput");
+    const results = $("#networkResults");
 
-  const encoded = encodeURIComponent(value);
+    if (!input || !results) return;
 
-  addHistory("network", value);
+    const value = input.value.trim();
 
-  const results = $("#networkResults");
-
-  if (!results) return;
-
-  results.innerHTML = `
-    <div class="result-card">
-
-      <div class="result-left">
-
-        <div class="result-title">
-          <span>◈</span>
-          Recherche réseau
-        </div>
-
-        <div class="result-url">
-          Cible : ${escapeHTML(value)}
-        </div>
-
-      </div>
-
-      <button
-        class="result-action"
-        data-search-url="https://www.google.com/search?q=${encoded}"
-      >
-        Rechercher
-      </button>
-
-    </div>
-
-    <div class="result-card">
-
-      <div class="result-left">
-
-        <div class="result-title">
-          <span>▣</span>
-          Informations publiques
-        </div>
-
-        <div class="result-url">
-          Recherche de sources indexées
-        </div>
-
-      </div>
-
-      <button
-        class="result-action"
-        data-search-url="https://duckduckgo.com/?q=${encoded}"
-      >
-        Ouvrir
-      </button>
-
-    </div>
-  `;
-
-  bindResultButtons();
-
-  showToast("Recherche réseau préparée.");
-}
-
-
-const networkButton = $("#networkSearch");
-
-if (networkButton) {
-  networkButton.addEventListener(
-    "click",
-    searchNetwork
-  );
-}
-
-
-const networkInput = $("#networkInput");
-
-if (networkInput) {
-
-  networkInput.addEventListener(
-    "keydown",
-    (event) => {
-
-      if (event.key === "Enter") {
-        searchNetwork();
-      }
-
+    if (!value) {
+      showToast("Entre une IP, un domaine ou une URL.");
+      input.focus();
+      return;
     }
-  );
+
+    addHistory("network", value);
+
+    const encoded =
+      encodeURIComponent(value);
+
+    results.innerHTML = `
+      <div class="result-card">
+
+        <div class="result-left">
+
+          <div class="result-title">
+            <span>◈</span>
+            Recherche web
+          </div>
+
+          <div class="result-url">
+            ${escapeHTML(value)}
+          </div>
+
+        </div>
+
+        <button
+          class="result-action"
+          data-url="https://www.google.com/search?q=${encoded}"
+        >
+          SEARCH
+        </button>
+
+      </div>
+
+      <div class="result-card">
+
+        <div class="result-left">
+
+          <div class="result-title">
+            <span>◎</span>
+            DNS / domaine
+          </div>
+
+          <div class="result-url">
+            Recherche de sources publiques
+          </div>
+
+        </div>
+
+        <button
+          class="result-action"
+          data-url="https://dns.google/resolve?name=${encoded}"
+        >
+          OPEN
+        </button>
+
+      </div>
+    `;
+
+    bindResultButtons();
+
+    showToast("Analyse préparée.");
+  });
+
+}
+
+
+/* =========================
+   GENERIC RESULT BUTTONS
+========================= */
+
+function bindResultButtons() {
+
+  $$("[data-url]").forEach((button) => {
+
+    button.addEventListener("click", () => {
+
+      const url = button.dataset.url;
+
+      if (!url) return;
+
+      window.open(
+        url,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+    });
+
+  });
 
 }
 
@@ -425,35 +466,93 @@ if (networkInput) {
    IMAGE SEARCH
 ========================= */
 
-const imageInput = $("#imageInput");
-const uploadArea = $(".upload-area");
-const imageName = $("#imageName");
+const imageSearchButton =
+  $("#imageSearchButton");
 
-if (uploadArea && imageInput) {
+if (imageSearchButton) {
 
-  uploadArea.addEventListener("click", () => {
-    imageInput.click();
-  });
+  imageSearchButton.addEventListener(
+    "click",
+    () => {
 
-}
+      const input = $("#imageUrl");
+      const results = $("#imageResults");
 
+      if (!input || !results) return;
 
-if (imageInput) {
+      const value = input.value.trim();
 
-  imageInput.addEventListener("change", () => {
+      if (!value) {
+        showToast("Colle d'abord l'URL d'une image.");
+        input.focus();
+        return;
+      }
 
-    const file = imageInput.files[0];
+      try {
+        new URL(value);
+      } catch {
+        showToast("URL d'image invalide.");
+        return;
+      }
 
-    if (!file) return;
+      const encoded =
+        encodeURIComponent(value);
 
-    if (imageName) {
-      imageName.textContent =
-        `${file.name} — ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+      results.innerHTML = `
+        <div class="result-card">
+
+          <div class="result-left">
+
+            <div class="result-title">
+              <span>▣</span>
+              Google Lens
+            </div>
+
+            <div class="result-url">
+              Recherche inversée
+            </div>
+
+          </div>
+
+          <button
+            class="result-action"
+            data-url="https://lens.google.com/uploadbyurl?url=${encoded}"
+          >
+            OPEN
+          </button>
+
+        </div>
+
+        <div class="result-card">
+
+          <div class="result-left">
+
+            <div class="result-title">
+              <span>▣</span>
+              Bing Visual Search
+            </div>
+
+            <div class="result-url">
+              Recherche visuelle
+            </div>
+
+          </div>
+
+          <button
+            class="result-action"
+            data-url="https://www.bing.com/images/search?q=imgurl:${encoded}&view=detailv2&iss=sbi"
+          >
+            OPEN
+          </button>
+
+        </div>
+      `;
+
+      bindResultButtons();
+
+      showToast("Moteurs de recherche préparés.");
     }
-
-    showToast("Image sélectionnée.");
-
-  });
+  );
 
 }
 
@@ -462,62 +561,176 @@ if (imageInput) {
    DORK GENERATOR
 ========================= */
 
-function generateDork() {
+const dorkType =
+  $("#dorkType");
 
-  const target = $("#dorkTarget");
-  const type = $("#dorkType");
-  const keyword = $("#dorkKeyword");
+const fileTypeContainer =
+  $("#fileTypeContainer");
 
-  const output = $("#dorkOutput");
 
-  if (!target || !type || !keyword || !output) {
-    return;
-  }
+if (dorkType) {
 
-  const targetValue = target.value.trim();
-  const typeValue = type.value;
-  const keywordValue = keyword.value.trim();
+  dorkType.addEventListener("change", () => {
 
-  if (!targetValue && !keywordValue) {
-    showToast("Ajoute un domaine ou un mot-clé.");
-    return;
-  }
+    if (!fileTypeContainer) return;
 
-  let query = "";
+    if (dorkType.value === "filetype") {
+      fileTypeContainer.classList.remove("hidden");
+    } else {
+      fileTypeContainer.classList.add("hidden");
+    }
 
-  if (targetValue) {
-    query += `site:${targetValue}`;
-  }
+  });
 
-  if (keywordValue) {
-    query += ` "${keywordValue}"`;
-  }
-
-  if (typeValue === "pdf") {
-    query += " filetype:pdf";
-  }
-
-  if (typeValue === "doc") {
-    query += " filetype:doc OR filetype:docx";
-  }
-
-  if (typeValue === "login") {
-    query += ' inurl:login';
-  }
-
-  output.textContent = query.trim();
-
-  showToast("Dork généré.");
 }
 
 
-const dorkButton = $("#generateDork");
+/* GENERATE DORK */
 
-if (dorkButton) {
-  dorkButton.addEventListener(
+const generateDorkButton =
+  $("#generateDork");
+
+if (generateDorkButton) {
+
+  generateDorkButton.addEventListener(
     "click",
-    generateDork
+    () => {
+
+      const query =
+        $("#dorkQuery")?.value.trim();
+
+      const type =
+        $("#dorkType")?.value;
+
+      const fileType =
+        $("#fileType")?.value;
+
+      const output =
+        $("#dorkOutput");
+
+      const text =
+        $("#dorkText");
+
+      if (!query) {
+        showToast("Entre une recherche.");
+        return;
+      }
+
+      let dork = "";
+
+      switch (type) {
+
+        case "site":
+          dork = `site:${query}`;
+          break;
+
+        case "filetype":
+          dork =
+            `filetype:${fileType} ${query}`;
+          break;
+
+        case "intitle":
+          dork =
+            `intitle:"${query}"`;
+          break;
+
+        case "inurl":
+          dork =
+            `inurl:${query}`;
+          break;
+
+        case "combined":
+          dork =
+            `site:${query} intitle:"${query}"`;
+          break;
+
+        default:
+          dork = query;
+      }
+
+      if (text) {
+        text.textContent = dork;
+      }
+
+      if (output) {
+        output.classList.remove("hidden");
+      }
+
+      showToast("Dork généré.");
+    }
   );
+
+}
+
+
+/* COPY DORK */
+
+const copyDork =
+  $("#copyDork");
+
+if (copyDork) {
+
+  copyDork.addEventListener(
+    "click",
+    async () => {
+
+      const text =
+        $("#dorkText")?.textContent.trim();
+
+      if (!text) {
+        showToast("Aucun dork.");
+        return;
+      }
+
+      try {
+
+        await navigator.clipboard.writeText(text);
+
+        showToast("Dork copié.");
+
+      } catch {
+
+        showToast("Copie impossible.");
+
+      }
+
+    }
+  );
+
+}
+
+
+/* OPEN DORK */
+
+const openDork =
+  $("#openDork");
+
+if (openDork) {
+
+  openDork.addEventListener(
+    "click",
+    () => {
+
+      const text =
+        $("#dorkText")?.textContent.trim();
+
+      if (!text) {
+        showToast("Génère d'abord un dork.");
+        return;
+      }
+
+      const url =
+        `https://www.google.com/search?q=${encodeURIComponent(text)}`;
+
+      window.open(
+        url,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+    }
+  );
+
 }
 
 
@@ -529,301 +742,101 @@ $$("[data-dork]").forEach((button) => {
 
   button.addEventListener("click", () => {
 
-    const target = $("#dorkTarget");
-    const output = $("#dorkOutput");
+    const type =
+      button.dataset.dork;
 
-    if (!output) return;
+    const query =
+      $("#dorkQuery");
 
-    const dork = button.dataset.dork || "";
+    const dorkType =
+      $("#dorkType");
 
-    if (target && target.value.trim()) {
+    if (!query || !dorkType) return;
 
-      output.textContent =
-        dork.replace(
-          "{domain}",
-          target.value.trim()
-        );
+    const values = {
+      site: "site",
+      filetype: "filetype",
+      intitle: "intitle",
+      inurl: "inurl"
+    };
 
-    } else {
-
-      output.textContent = dork;
-
+    if (values[type]) {
+      dorkType.value = values[type];
     }
 
-    showToast("Dork chargé.");
+    if (type === "filetype") {
+      fileTypeContainer?.classList.remove("hidden");
+    } else {
+      fileTypeContainer?.classList.add("hidden");
+    }
 
+    query.focus();
+
+    showToast(`${type}: sélectionné.`);
   });
 
 });
 
 
 /* =========================
-   COPY DORK
+   IP VALIDATOR
 ========================= */
 
-const copyDorkButton = $("#copyDork");
+const validateIP =
+  $("#validateIP");
 
-if (copyDorkButton) {
+if (validateIP) {
 
-  copyDorkButton.addEventListener("click", async () => {
-
-    const output = $("#dorkOutput");
-
-    if (!output) return;
-
-    const text = output.textContent.trim();
-
-    if (!text) {
-      showToast("Aucun dork à copier.");
-      return;
-    }
-
-    try {
-
-      await navigator.clipboard.writeText(text);
-
-      showToast("Dork copié.");
-
-    } catch {
-
-      showToast("Copie impossible.");
-    }
-
-  });
-
-}
-
-
-/* =========================
-   UTILITIES
-========================= */
-
-function checkUrl() {
-
-  const input = $("#urlInput");
-  const result = $("#urlResult");
-
-  if (!input || !result) return;
-
-  const value = input.value.trim();
-
-  if (!value) {
-    result.textContent = "URL manquante.";
-    result.className = "validation bad";
-    return;
-  }
-
-  try {
-
-    const url = new URL(value);
-
-    if (
-      url.protocol !== "http:" &&
-      url.protocol !== "https:"
-    ) {
-      throw new Error();
-    }
-
-    result.textContent =
-      `URL valide — ${url.hostname}`;
-
-    result.className = "validation ok";
-
-  } catch {
-
-    result.textContent = "URL invalide.";
-
-    result.className = "validation bad";
-
-  }
-
-}
-
-
-const urlCheckButton = $("#checkUrl");
-
-if (urlCheckButton) {
-
-  urlCheckButton.addEventListener(
-    "click",
-    checkUrl
-  );
-
-}
-
-
-/* =========================
-   ENCODE / DECODE
-========================= */
-
-function encodeText() {
-
-  const input = $("#encodeInput");
-  const output = $("#encodeOutput");
-
-  if (!input || !output) return;
-
-  output.value =
-    encodeURIComponent(input.value);
-
-}
-
-
-function decodeText() {
-
-  const input = $("#encodeInput");
-  const output = $("#encodeOutput");
-
-  if (!input || !output) return;
-
-  try {
-
-    output.value =
-      decodeURIComponent(input.value);
-
-  } catch {
-
-    output.value =
-      "Impossible de décoder cette valeur.";
-
-  }
-
-}
-
-
-const encodeButton = $("#encodeButton");
-const decodeButton = $("#decodeButton");
-
-if (encodeButton) {
-  encodeButton.addEventListener(
-    "click",
-    encodeText
-  );
-}
-
-if (decodeButton) {
-  decodeButton.addEventListener(
-    "click",
-    decodeText
-  );
-}
-
-
-/* =========================
-   HISTORY
-========================= */
-
-const HISTORY_KEY = "osint_web_history_v3";
-
-function getHistory() {
-
-  try {
-
-    return JSON.parse(
-      localStorage.getItem(HISTORY_KEY)
-    ) || [];
-
-  } catch {
-
-    return [];
-
-  }
-
-}
-
-
-function saveHistory(history) {
-
-  localStorage.setItem(
-    HISTORY_KEY,
-    JSON.stringify(history)
-  );
-
-}
-
-
-function addHistory(type, value) {
-
-  const history = getHistory();
-
-  history.unshift({
-    type,
-    value,
-    time: Date.now()
-  });
-
-  const limited =
-    history.slice(0, 20);
-
-  saveHistory(limited);
-
-  renderHistory();
-}
-
-
-function renderHistory() {
-
-  const container = $(".history-list");
-
-  if (!container) return;
-
-  const history = getHistory();
-
-  if (!history.length) {
-
-    container.innerHTML = `
-      <div class="empty-history">
-        No searches yet
-      </div>
-    `;
-
-    return;
-  }
-
-  container.innerHTML =
-    history
-      .map((item) => {
-
-        return `
-          <div
-            class="history-entry"
-            data-history-value="${escapeHTML(item.value)}"
-          >
-            <span class="history-type">
-              ${item.type === "network" ? "◈" : "◉"}
-            </span>
-
-            <span>
-              ${escapeHTML(item.value)}
-            </span>
-          </div>
-        `;
-
-      })
-      .join("");
-
-}
-
-
-renderHistory();
-
-
-const clearHistoryButton =
-  $(".clear-history");
-
-if (clearHistoryButton) {
-
-  clearHistoryButton.addEventListener(
+  validateIP.addEventListener(
     "click",
     () => {
 
-      localStorage.removeItem(
-        HISTORY_KEY
-      );
+      const input =
+        $("#ipValidatorInput");
 
-      renderHistory();
+      const result =
+        $("#ipValidationResult");
 
-      showToast("Historique supprimé.");
+      if (!input || !result) return;
+
+      const value =
+        input.value.trim();
+
+      const parts =
+        value.split(".");
+
+      const valid =
+        parts.length === 4 &&
+        parts.every((part) => {
+
+          if (!/^\d+$/.test(part)) {
+            return false;
+          }
+
+          const number =
+            Number(part);
+
+          return number >= 0 &&
+            number <= 255;
+        });
+
+      if (valid) {
+
+        result.textContent =
+          "✓ Adresse IPv4 valide";
+
+        result.className =
+          "validation ok";
+
+      } else {
+
+        result.textContent =
+          "✕ Adresse IPv4 invalide";
+
+        result.className =
+          "validation bad";
+
+      }
 
     }
   );
@@ -832,45 +845,154 @@ if (clearHistoryButton) {
 
 
 /* =========================
-   GLOBAL SEARCH SHORTCUT
+   EMAIL VALIDATOR
 ========================= */
 
-document.addEventListener("keydown", (event) => {
+const validateEmail =
+  $("#validateEmail");
 
-  if (
-    (event.ctrlKey || event.metaKey) &&
-    event.key.toLowerCase() === "k"
-  ) {
+if (validateEmail) {
 
-    event.preventDefault();
+  validateEmail.addEventListener(
+    "click",
+    () => {
 
-    const input =
-      $("#identityInput");
+      const input =
+        $("#emailValidatorInput");
 
-    if (input) {
+      const result =
+        $("#emailValidationResult");
+
+      if (!input || !result) return;
+
+      const value =
+        input.value.trim();
+
+      const valid =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+      if (valid) {
+
+        result.textContent =
+          "✓ Format e-mail valide";
+
+        result.className =
+          "validation ok";
+
+      } else {
+
+        result.textContent =
+          "✕ Format e-mail invalide";
+
+        result.className =
+          "validation bad";
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =========================
+   URL PARSER
+========================= */
+
+const parseURL =
+  $("#parseURL");
+
+if (parseURL) {
+
+  parseURL.addEventListener(
+    "click",
+    () => {
+
+      const input =
+        $("#urlParserInput");
+
+      const result =
+        $("#urlParserResult");
+
+      if (!input || !result) return;
+
+      const value =
+        input.value.trim();
+
+      if (!value) {
+
+        result.textContent =
+          "Entre une URL.";
+
+        result.className =
+          "validation bad";
+
+        return;
+      }
+
+      try {
+
+        const url =
+          new URL(value);
+
+        result.innerHTML = `
+          <div class="validation ok">
+            <strong>URL valide</strong><br>
+            Protocole : ${escapeHTML(url.protocol)}<br>
+            Domaine : ${escapeHTML(url.hostname)}<br>
+            Port : ${escapeHTML(url.port || "défaut")}<br>
+            Chemin : ${escapeHTML(url.pathname || "/")}
+          </div>
+        `;
+
+      } catch {
+
+        result.textContent =
+          "✕ URL invalide";
+
+        result.className =
+          "validation bad";
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =========================
+   KEYBOARD SHORTCUT
+========================= */
+
+document.addEventListener(
+  "keydown",
+  (event) => {
+
+    if (
+      (event.ctrlKey || event.metaKey) &&
+      event.key.toLowerCase() === "k"
+    ) {
+
+      event.preventDefault();
 
       openPage("identity");
 
-      input.focus();
+      const input =
+        $("#identityInput");
+
+      input?.focus();
 
     }
 
   }
-
-});
+);
 
 
 /* =========================
    STARTUP
 ========================= */
 
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
-
-    console.log(
-      "OSINT.WEB V3 — SYSTEM ONLINE"
-    );
-
-  }
+console.log(
+  "OSINT.WEB V3 — SYSTEM ONLINE"
 );
