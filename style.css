@@ -1,423 +1,1284 @@
-  const configs = {
+/* =========================================
+   OSINT.WEB V3
+========================================= */
 
-  pseudo: {
 
-    label: "Pseudo à rechercher",
+/* ---------- ELEMENTS ---------- */
 
-    placeholder: "ex. shadow_42",
+const pages =
+    document.querySelectorAll(".page");
 
-    hint: "Recherche ce pseudo sur plusieurs sources publiques.",
+const navButtons =
+    document.querySelectorAll(".nav");
 
-    links: q => [
+const openButtons =
+    document.querySelectorAll("[data-open]");
 
-      [
-        "Google",
-        `https://www.google.com/search?q=${encodeURIComponent('"' + q + '"')}`
-      ],
+const results =
+    document.getElementById("results");
 
-      [
-        "Reddit",
-        `https://www.reddit.com/search/?q=${encodeURIComponent(q)}`
-      ],
+const historyBox =
+    document.getElementById("history");
 
-      [
-        "GitHub",
-        `https://github.com/search?q=${encodeURIComponent(q)}&type=users`
-      ],
 
-      [
-        "X / Twitter",
-        `https://x.com/search?q=${encodeURIComponent(q)}`
-      ],
+/* ---------- PAGE NAVIGATION ---------- */
 
-      [
-        "Instagram",
-        `https://www.google.com/search?q=${encodeURIComponent('site:instagram.com "' + q + '"')}`
-      ],
+function openPage(name) {
 
-      [
-        "TikTok",
-        `https://www.google.com/search?q=${encodeURIComponent('site:tiktok.com "' + q + '"')}`
-      ]
+    pages.forEach(page => {
 
-    ]
-  },
+        page.classList.remove("active-page");
 
-
-  email: {
-
-    label: "Adresse e-mail",
-
-    placeholder: "exemple@mail.com",
-
-    hint: "Recherche cette adresse sur des sources publiques.",
-
-    links: q => [
-
-      [
-        "Google",
-        `https://www.google.com/search?q=${encodeURIComponent('"' + q + '"')}`
-      ],
-
-      [
-        "DuckDuckGo",
-        `https://duckduckgo.com/?q=${encodeURIComponent('"' + q + '"')}`
-      ],
-
-      [
-        "Have I Been Pwned",
-        "https://haveibeenpwned.com/"
-      ],
-
-      [
-        "Gravatar",
-        `https://en.gravatar.com/site/check/${encodeURIComponent(q)}`
-      ]
-
-    ]
-  },
-
-
-  domain: {
-
-    label: "Domaine",
-
-    placeholder: "example.com",
-
-    hint: "Analyse rapide d'un domaine avec des services publics.",
-
-    links: q => {
-
-      const domain = q
-        .replace(/^https?:\/\//, "")
-        .split("/")[0];
-
-      return [
-
-        [
-          "Google site:",
-          `https://www.google.com/search?q=${encodeURIComponent("site:" + domain)}`
-        ],
-
-        [
-          "ICANN Lookup",
-          `https://lookup.icann.org/en/lookup?name=${encodeURIComponent(domain)}`
-        ],
-
-        [
-          "DNSlytics",
-          `https://dnslytics.com/domain/${encodeURIComponent(domain)}`
-        ],
-
-        [
-          "SecurityTrails",
-          `https://securitytrails.com/domain/${encodeURIComponent(domain)}`
-        ]
-
-      ];
-    }
-  },
-
-
-  url: {
-
-    label: "URL",
-
-    placeholder: "https://example.com",
-
-    hint: "Analyse une URL avec plusieurs services.",
-
-    links: q => [
-
-      [
-        "Google",
-        `https://www.google.com/search?q=${encodeURIComponent(q)}`
-      ],
-
-      [
-        "VirusTotal",
-        `https://www.virustotal.com/gui/search/${encodeURIComponent(q)}`
-      ],
-
-      [
-        "URLScan",
-        `https://urlscan.io/search/#${encodeURIComponent(q)}`
-      ],
-
-      [
-        "Wayback Machine",
-        `https://web.archive.org/web/*/${encodeURIComponent(q)}`
-      ]
-
-    ]
-  },
-
-
-  image: {
-
-    label: "URL d'une image",
-
-    placeholder: "https://example.com/image.jpg",
-
-    hint: "Recherche une image avec plusieurs moteurs.",
-
-    links: q => [
-
-      [
-        "Google Lens",
-        `https://lens.google.com/uploadbyurl?url=${encodeURIComponent(q)}`
-      ],
-
-      [
-        "TinEye",
-        `https://tineye.com/search?url=${encodeURIComponent(q)}`
-      ],
-
-      [
-        "Google Images",
-        `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q)}`
-      ]
-
-    ]
-  },
-
-
-  ip: {
-
-    label: "Adresse IP",
-
-    placeholder: "ex. 8.8.8.8",
-
-    hint: "Recherche publique autour d'une adresse IP.",
-
-    links: q => [
-
-      [
-        "Google",
-        `https://www.google.com/search?q=${encodeURIComponent('"' + q + '"')}`
-      ],
-
-      [
-        "AbuseIPDB",
-        `https://www.abuseipdb.com/check/${encodeURIComponent(q)}`
-      ],
-
-      [
-        "IPinfo",
-        `https://ipinfo.io/${encodeURIComponent(q)}`
-      ],
-
-      [
-        "VirusTotal",
-        `https://www.virustotal.com/gui/ip-address/${encodeURIComponent(q)}`
-      ]
-
-    ]
-  },
-
-
-  phone: {
-
-    label: "Numéro de téléphone",
-
-    placeholder: "+33 6 12 34 56 78",
-
-    hint: "Recherche publique du numéro sur le web.",
-
-    links: q => [
-
-      [
-        "Google",
-        `https://www.google.com/search?q=${encodeURIComponent('"' + q + '"')}`
-      ],
-
-      [
-        "DuckDuckGo",
-        `https://duckduckgo.com/?q=${encodeURIComponent('"' + q + '"')}`
-      ],
-
-      [
-        "Bing",
-        `https://www.bing.com/search?q=${encodeURIComponent('"' + q + '"')}`
-      ]
-
-    ]
-  },
-
-
-  dork: {
-
-    label: "Recherche Google avancée",
-
-    placeholder: "site:example.com filetype:pdf",
-
-    hint: "Entre directement une requête de recherche avancée.",
-
-    links: q => [
-
-      [
-        "Google",
-        `https://www.google.com/search?q=${encodeURIComponent(q)}`
-      ],
-
-      [
-        "Bing",
-        `https://www.bing.com/search?q=${encodeURIComponent(q)}`
-      ],
-
-      [
-        "DuckDuckGo",
-        `https://duckduckgo.com/?q=${encodeURIComponent(q)}`
-      ]
-
-    ]
-  }
-
-};
-
-
-let currentType = "pseudo";
-
-
-const tabs = document.querySelectorAll(".tab");
-
-const label = document.getElementById("label");
-
-const input = document.getElementById("query");
-
-const button = document.getElementById("searchButton");
-
-const results = document.getElementById("results");
-
-const grid = document.getElementById("resultGrid");
-
-const clearButton = document.getElementById("clearButton");
-
-const hint = document.getElementById("hint");
-
-
-/* CHANGEMENT D'OUTIL */
-
-tabs.forEach(tab => {
-
-  tab.addEventListener("click", () => {
-
-    currentType = tab.dataset.type;
-
-    tabs.forEach(t => {
-      t.classList.remove("active");
     });
 
-    tab.classList.add("active");
 
-    label.textContent =
-      configs[currentType].label;
+    const page =
+        document.getElementById(name);
 
-    input.placeholder =
-      configs[currentType].placeholder;
+    if (page) {
 
-    hint.textContent =
-      configs[currentType].hint;
+        page.classList.add("active-page");
 
-    input.value = "";
-
-    input.focus();
-
-  });
-
-});
+    }
 
 
-/* RECHERCHE */
+    navButtons.forEach(button => {
 
-button.addEventListener("click", search);
+        button.classList.toggle(
+            "active",
+            button.dataset.page === name
+        );
 
-
-input.addEventListener("keydown", event => {
-
-  if (event.key === "Enter") {
-    search();
-  }
-
-});
-
-
-function search() {
-
-  const value = input.value.trim();
-
-  if (!value) {
-
-    alert("Entre une recherche.");
-
-    return;
-  }
-
-
-  const links =
-    configs[currentType].links(value);
-
-
-  grid.innerHTML = "";
-
-
-  links.forEach(([name, url]) => {
-
-    const element =
-      document.createElement("a");
-
-
-    element.className = "result";
-
-
-    element.href = url;
-
-
-    element.target = "_blank";
-
-
-    element.rel =
-      "noopener noreferrer";
-
-
-    element.innerHTML = `
-
-      <div class="result-name">
-        ${name} ↗
-      </div>
-
-      <div class="result-url">
-        Ouvrir la source
-      </div>
-
-    `;
-
-
-    grid.appendChild(element);
-
-  });
-
-
-  results.classList.remove("hidden");
-
-
-  results.scrollIntoView({
-    behavior: "smooth"
-  });
+    });
 
 }
 
 
-/* EFFACER */
+navButtons.forEach(button => {
 
-clearButton.addEventListener("click", () => {
+    button.addEventListener("click", () => {
 
-  grid.innerHTML = "";
+        openPage(button.dataset.page);
 
-  results.classList.add("hidden");
-
-  input.value = "";
-
-  input.focus();
+    });
 
 });
+
+
+openButtons.forEach(button => {
+
+    button.addEventListener("click", () => {
+
+        openPage(button.dataset.open);
+
+    });
+
+});
+
+
+
+/* ---------- CLOCK ---------- */
+
+function updateClock() {
+
+    const now = new Date();
+
+    const time =
+        now.toLocaleTimeString(
+            "fr-FR",
+            {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+            }
+        );
+
+    document.getElementById("clock")
+        .textContent = time;
+
+}
+
+
+setInterval(updateClock, 1000);
+
+updateClock();
+
+
+
+/* ---------- HISTORY ---------- */
+
+let history =
+    JSON.parse(
+        localStorage.getItem("osintHistory") || "[]"
+    );
+
+
+function saveHistory(type, value) {
+
+    history.unshift({
+        type: type,
+        value: value
+    });
+
+
+    history =
+        history.slice(0, 15);
+
+
+    localStorage.setItem(
+        "osintHistory",
+        JSON.stringify(history)
+    );
+
+
+    displayHistory();
+
+}
+
+
+function displayHistory() {
+
+    historyBox.innerHTML = "";
+
+
+    if (!history.length) {
+
+        historyBox.innerHTML =
+            '<div class="empty-history">No searches yet</div>';
+
+        return;
+
+    }
+
+
+    history.forEach(item => {
+
+        const element =
+            document.createElement("div");
+
+        element.className =
+            "history-item";
+
+        element.textContent =
+            item.type.toUpperCase() +
+            "  •  " +
+            item.value;
+
+        historyBox.appendChild(element);
+
+    });
+
+}
+
+
+displayHistory();
+
+
+
+/* ---------- RESULT SYSTEM ---------- */
+
+function showResults(title, links) {
+
+    results.innerHTML = "";
+
+    const grid =
+        document.createElement("div");
+
+    grid.className =
+        "result-grid";
+
+
+    links.forEach(item => {
+
+        const card =
+            document.createElement("a");
+
+        card.className =
+            "result";
+
+        card.href =
+            item.url;
+
+        card.target =
+            "_blank";
+
+        card.rel =
+            "noopener noreferrer";
+
+
+        card.innerHTML = `
+
+            <div class="result-title">
+                ${escapeHTML(item.name)} ↗
+            </div>
+
+            <div class="result-sub">
+                ${escapeHTML(item.description || "Open source")}
+            </div>
+
+        `;
+
+
+        grid.appendChild(card);
+
+    });
+
+
+    results.appendChild(grid);
+
+
+    results.scrollIntoView({
+        behavior: "smooth"
+    });
+
+}
+
+
+function escapeHTML(text) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        text;
+
+    return div.innerHTML;
+
+}
+
+
+
+/* ---------- USERNAME ---------- */
+
+function usernameSearch(value) {
+
+    const q =
+        encodeURIComponent(value);
+
+
+    const links = [
+
+        {
+            name: "Google",
+            description: "Exact public search",
+            url:
+                "https://www.google.com/search?q=" +
+                encodeURIComponent('"' + value + '"')
+        },
+
+        {
+            name: "Reddit",
+            description: "Reddit search",
+            url:
+                "https://www.reddit.com/search/?q=" +
+                q
+        },
+
+        {
+            name: "GitHub",
+            description: "GitHub users",
+            url:
+                "https://github.com/search?q=" +
+                q +
+                "&type=users"
+        },
+
+        {
+            name: "X",
+            description: "X search",
+            url:
+                "https://x.com/search?q=" +
+                q
+        },
+
+        {
+            name: "Instagram",
+            description: "Public web search",
+            url:
+                "https://www.google.com/search?q=" +
+                encodeURIComponent(
+                    "site:instagram.com " +
+                    value
+                )
+        },
+
+        {
+            name: "TikTok",
+            description: "Public web search",
+            url:
+                "https://www.google.com/search?q=" +
+                encodeURIComponent(
+                    "site:tiktok.com " +
+                    value
+                )
+        },
+
+        {
+            name: "YouTube",
+            description: "YouTube search",
+            url:
+                "https://www.youtube.com/results?search_query=" +
+                q
+        },
+
+        {
+            name: "Twitch",
+            description: "Twitch search",
+            url:
+                "https://www.google.com/search?q=" +
+                encodeURIComponent(
+                    "site:twitch.tv " +
+                    value
+                )
+        },
+
+        {
+            name: "Steam",
+            description: "Steam public search",
+            url:
+                "https://www.google.com/search?q=" +
+                encodeURIComponent(
+                    "site:steamcommunity.com " +
+                    value
+                )
+        }
+
+    ];
+
+
+    showResults(
+        "Username",
+        links
+    );
+
+
+    saveHistory(
+        "username",
+        value
+    );
+
+}
+
+
+
+/* ---------- EMAIL ---------- */
+
+function emailSearch(value) {
+
+    const exact =
+        encodeURIComponent(
+            '"' + value + '"'
+        );
+
+
+    const links = [
+
+        {
+            name: "Google",
+            description: "Exact public search",
+            url:
+                "https://www.google.com/search?q=" +
+                exact
+        },
+
+        {
+            name: "DuckDuckGo",
+            description: "Exact public search",
+            url:
+                "https://duckduckgo.com/?q=" +
+                exact
+        },
+
+        {
+            name: "Bing",
+            description: "Exact public search",
+            url:
+                "https://www.bing.com/search?q=" +
+                exact
+        },
+
+        {
+            name: "Have I Been Pwned",
+            description: "Breach lookup service",
+            url:
+                "https://haveibeenpwned.com/"
+        },
+
+        {
+            name: "Gravatar",
+            description: "Public avatar lookup",
+            url:
+                "https://en.gravatar.com/site/check/" +
+                encodeURIComponent(value)
+        }
+
+    ];
+
+
+    showResults(
+        "E-mail",
+        links
+    );
+
+
+    saveHistory(
+        "email",
+        value
+    );
+
+}
+
+
+
+/* ---------- DOMAIN ---------- */
+
+function domainSearch(value) {
+
+    const domain =
+        value
+            .replace(/^https?:\/\//, "")
+            .split("/")[0];
+
+
+    const d =
+        encodeURIComponent(domain);
+
+
+    const links = [
+
+        {
+            name: "Google site:",
+            description: "Indexed pages",
+            url:
+                "https://www.google.com/search?q=" +
+                encodeURIComponent(
+                    "site:" + domain
+                )
+        },
+
+        {
+            name: "ICANN Lookup",
+            description: "Domain registration lookup",
+            url:
+                "https://lookup.icann.org/en/lookup?name=" +
+                d
+        },
+
+        {
+            name: "DNSlytics",
+            description: "DNS information",
+            url:
+                "https://dnslytics.com/domain/" +
+                d
+        },
+
+        {
+            name: "SecurityTrails",
+            description: "Domain intelligence",
+            url:
+                "https://securitytrails.com/domain/" +
+                d
+        },
+
+        {
+            name: "Wayback Machine",
+            description: "Historical pages",
+            url:
+                "https://web.archive.org/web/*/" +
+                d
+        },
+
+        {
+            name: "VirusTotal",
+            description: "Public domain analysis",
+            url:
+                "https://www.virustotal.com/gui/domain/" +
+                d
+        }
+
+    ];
+
+
+    showResults(
+        "Domain",
+        links
+    );
+
+
+    saveHistory(
+        "domain",
+        domain
+    );
+
+}
+
+
+
+/* ---------- IP ---------- */
+
+function ipSearch(value) {
+
+    const ip =
+        encodeURIComponent(value);
+
+
+    const links = [
+
+        {
+            name: "IPinfo",
+            description: "Public IP information",
+            url:
+                "https://ipinfo.io/" +
+                ip
+        },
+
+        {
+            name: "AbuseIPDB",
+            description: "Public reputation lookup",
+            url:
+                "https://www.abuseipdb.com/check/" +
+                ip
+        },
+
+        {
+            name: "VirusTotal",
+            description: "Public IP analysis",
+            url:
+                "https://www.virustotal.com/gui/ip-address/" +
+                ip
+        },
+
+        {
+            name: "Google",
+            description: "Public web search",
+            url:
+                "https://www.google.com/search?q=" +
+                encodeURIComponent(
+                    '"' + value + '"'
+                )
+        }
+
+    ];
+
+
+    showResults(
+        "IP",
+        links
+    );
+
+
+    saveHistory(
+        "ip",
+        value
+    );
+
+}
+
+
+
+/* ---------- URL ---------- */
+
+function urlSearch(value) {
+
+    const encoded =
+        encodeURIComponent(value);
+
+
+    const links = [
+
+        {
+            name: "VirusTotal",
+            description: "URL analysis",
+            url:
+                "https://www.virustotal.com/gui/search/" +
+                encoded
+        },
+
+        {
+            name: "URLScan",
+            description: "Public URL search",
+            url:
+                "https://urlscan.io/search/#" +
+                encoded
+        },
+
+        {
+            name: "Wayback Machine",
+            description: "Historical snapshots",
+            url:
+                "https://web.archive.org/web/*/" +
+                encoded
+        },
+
+        {
+            name: "Google",
+            description: "Public search",
+            url:
+                "https://www.google.com/search?q=" +
+                encoded
+        }
+
+    ];
+
+
+    showResults(
+        "URL",
+        links
+    );
+
+
+    saveHistory(
+        "url",
+        value
+    );
+
+}
+
+
+
+/* ---------- GLOBAL SEARCH ---------- */
+
+document
+    .getElementById("globalButton")
+    .addEventListener(
+        "click",
+        globalSearch
+    );
+
+
+document
+    .getElementById("globalSearch")
+    .addEventListener(
+        "keydown",
+        event => {
+
+            if (event.key === "Enter") {
+
+                globalSearch();
+
+            }
+
+        }
+    );
+
+
+function globalSearch() {
+
+    const value =
+        document
+            .getElementById("globalSearch")
+            .value
+            .trim();
+
+
+    const type =
+        document
+            .getElementById("globalType")
+            .value;
+
+
+    if (!value) {
+
+        return;
+
+    }
+
+
+    if (type === "username") {
+
+        usernameSearch(value);
+
+    }
+
+
+    if (type === "email") {
+
+        emailSearch(value);
+
+    }
+
+
+    if (type === "domain") {
+
+        domainSearch(value);
+
+    }
+
+
+    if (type === "ip") {
+
+        ipSearch(value);
+
+    }
+
+
+    if (type === "url") {
+
+        urlSearch(value);
+
+    }
+
+}
+
+
+
+/* ---------- IDENTITY ---------- */
+
+let identityType =
+    "username";
+
+
+document
+    .querySelectorAll("[data-identity]")
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                identityType =
+                    button.dataset.identity;
+
+
+                document
+                    .querySelectorAll("[data-identity]")
+                    .forEach(b =>
+                        b.classList.remove("active")
+                    );
+
+
+                button.classList.add("active");
+
+            }
+        );
+
+    });
+
+
+document
+    .getElementById("identityButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            const value =
+                document
+                    .getElementById("identityInput")
+                    .value
+                    .trim();
+
+
+            if (!value) return;
+
+
+            if (identityType === "username") {
+
+                usernameSearch(value);
+
+            } else {
+
+                emailSearch(value);
+
+            }
+
+
+            openPage("dashboard");
+
+        }
+    );
+
+
+
+/* ---------- IP ---------- */
+
+document
+    .getElementById("ipButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            const value =
+                document
+                    .getElementById("ipInput")
+                    .value
+                    .trim();
+
+
+            if (value) {
+
+                ipSearch(value);
+
+                openPage("dashboard");
+
+            }
+
+        }
+    );
+
+
+
+/* ---------- DOMAIN ---------- */
+
+document
+    .getElementById("domainButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            const value =
+                document
+                    .getElementById("domainInput")
+                    .value
+                    .trim();
+
+
+            if (value) {
+
+                domainSearch(value);
+
+                openPage("dashboard");
+
+            }
+
+        }
+    );
+
+
+
+/* ---------- URL ---------- */
+
+document
+    .getElementById("urlButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            const value =
+                document
+                    .getElementById("urlInput")
+                    .value
+                    .trim();
+
+
+            if (value) {
+
+                urlSearch(value);
+
+                openPage("dashboard");
+
+            }
+
+        }
+    );
+
+
+
+/* ---------- IMAGE ---------- */
+
+document
+    .getElementById("imageButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            const value =
+                document
+                    .getElementById("imageInput")
+                    .value
+                    .trim();
+
+
+            if (!value) return;
+
+
+            const encoded =
+                encodeURIComponent(value);
+
+
+            showResults(
+                "Image",
+                [
+
+                    {
+                        name: "Google Lens",
+                        description: "Reverse image search",
+                        url:
+                            "https://lens.google.com/uploadbyurl?url=" +
+                            encoded
+                    },
+
+                    {
+                        name: "TinEye",
+                        description: "Reverse image search",
+                        url:
+                            "https://tineye.com/search?url=" +
+                            encoded
+                    },
+
+                    {
+                        name: "Google Images",
+                        description: "Image search",
+                        url:
+                            "https://www.google.com/search?tbm=isch&q=" +
+                            encoded
+                    }
+
+                ]
+            );
+
+
+            saveHistory(
+                "image",
+                value
+            );
+
+
+            openPage("dashboard");
+
+        }
+    );
+
+
+
+/* ---------- DORK GENERATOR ---------- */
+
+document
+    .getElementById("dorkButton")
+    .addEventListener(
+        "click",
+        generateDork
+    );
+
+
+function generateDork() {
+
+    const domain =
+        document
+            .getElementById("dorkDomain")
+            .value
+            .trim();
+
+
+    const keyword =
+        document
+            .getElementById("dorkKeyword")
+            .value
+            .trim();
+
+
+    const file =
+        document
+            .getElementById("dorkFile")
+            .value;
+
+
+    let query = "";
+
+
+    if (domain) {
+
+        query +=
+            "site:" +
+            domain +
+            " ";
+
+    }
+
+
+    if (keyword) {
+
+        query +=
+            '"' +
+            keyword +
+            '" ';
+
+    }
+
+
+    if (file) {
+
+        query +=
+            "filetype:" +
+            file;
+
+    }
+
+
+    query =
+        query.trim();
+
+
+    document
+        .getElementById("dorkOutput")
+        .textContent =
+        query || "--";
+
+}
+
+
+document
+    .getElementById("copyDork")
+    .addEventListener(
+        "click",
+        async () => {
+
+            const text =
+                document
+                    .getElementById("dorkOutput")
+                    .textContent;
+
+
+            if (text !== "--") {
+
+                await navigator.clipboard.writeText(text);
+
+            }
+
+        }
+    );
+
+
+
+/* ---------- SHA-256 ---------- */
+
+document
+    .getElementById("hashButton")
+    .addEventListener(
+        "click",
+        async () => {
+
+            const text =
+                document
+                    .getElementById("hashInput")
+                    .value;
+
+
+            const data =
+                new TextEncoder()
+                    .encode(text);
+
+
+            const hash =
+                await crypto.subtle.digest(
+                    "SHA-256",
+                    data
+                );
+
+
+            const result =
+                Array
+                    .from(new Uint8Array(hash))
+                    .map(
+                        byte =>
+                            byte
+                                .toString(16)
+                                .padStart(2, "0")
+                    )
+                    .join("");
+
+
+            document
+                .getElementById("hashOutput")
+                .textContent =
+                result;
+
+        }
+    );
+
+
+
+/* ---------- BASE64 ---------- */
+
+document
+    .getElementById("encodeButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            const text =
+                document
+                    .getElementById("baseInput")
+                    .value;
+
+
+            try {
+
+                document
+                    .getElementById("baseOutput")
+                    .textContent =
+                    btoa(
+                        unescape(
+                            encodeURIComponent(text)
+                        )
+                    );
+
+            } catch {
+
+                document
+                    .getElementById("baseOutput")
+                    .textContent =
+                    "Erreur";
+
+            }
+
+        }
+    );
+
+
+document
+    .getElementById("decodeButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            const text =
+                document
+                    .getElementById("baseInput")
+                    .value;
+
+
+            try {
+
+                document
+                    .getElementById("baseOutput")
+                    .textContent =
+                    decodeURIComponent(
+                        escape(
+                            atob(text)
+                        )
+                    );
+
+            } catch {
+
+                document
+                    .getElementById("baseOutput")
+                    .textContent =
+                    "Base64 invalide";
+
+            }
+
+        }
+    );
+
+
+
+/* ---------- URL PARSER ---------- */
+
+document
+    .getElementById("parserButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            const value =
+                document
+                    .getElementById("parserInput")
+                    .value
+                    .trim();
+
+
+            try {
+
+                const url =
+                    new URL(value);
+
+
+                document
+                    .getElementById("parserOutput")
+                    .innerHTML =
+
+                    "Protocol: " +
+                    escapeHTML(url.protocol) +
+                    "<br>" +
+
+                    "Host: " +
+                    escapeHTML(url.hostname) +
+                    "<br>" +
+
+                    "Port: " +
+                    escapeHTML(url.port || "default") +
+                    "<br>" +
+
+                    "Path: " +
+                    escapeHTML(url.pathname) +
+                    "<br>" +
+
+                    "Query: " +
+                    escapeHTML(url.search || "none");
+
+            } catch {
+
+                document
+                    .getElementById("parserOutput")
+                    .textContent =
+                    "URL invalide";
+
+            }
+
+        }
+    );
+
+
+
+/* ---------- TIMESTAMP ---------- */
+
+document
+    .getElementById("timestampButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            const now =
+                Date.now();
+
+
+            const date =
+                new Date();
+
+
+            document
+                .getElementById("timestampOutput")
+                .innerHTML =
+
+                "Unix: " +
+                now +
+                "<br><br>" +
+
+                "ISO: " +
+                date.toISOString();
+
+        }
+    );
+
+
+
+/* ---------- CLEAR ---------- */
+
+document
+    .getElementById("clearResults")
+    .addEventListener(
+        "click",
+        () => {
+
+            results.innerHTML = `
+
+                <div class="empty-results">
+
+                    <div class="empty-icon">
+                        ⌕
+                    </div>
+
+                    <strong>
+                        No investigation started
+                    </strong>
+
+                    <span>
+                        Lance une recherche pour afficher les sources.
+                    </span>
+
+                </div>
+
+            `;
+
+        }
+    );
