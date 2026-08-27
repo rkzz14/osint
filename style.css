@@ -1,1284 +1,1290 @@
-/* =========================================
-   OSINT.WEB V3
-========================================= */
+"use strict";
+
+/*
+  OSINT.WEB V3
+  Front-end only.
+
+  Les fonctions qui nécessitent un backend/API externe
+  ne prétendent pas avoir trouvé des informations lorsqu'elles
+  n'ont pas réellement obtenu de résultat.
+*/
 
 
-/* ---------- ELEMENTS ---------- */
+/* =========================
+   HELPERS
+========================= */
 
-const pages =
-    document.querySelectorAll(".page");
+const $ = (selector) => document.querySelector(selector);
 
-const navButtons =
-    document.querySelectorAll(".nav");
-
-const openButtons =
-    document.querySelectorAll("[data-open]");
-
-const results =
-    document.getElementById("results");
-
-const historyBox =
-    document.getElementById("history");
+const $$ = (selector) => [...document.querySelectorAll(selector)];
 
 
-/* ---------- PAGE NAVIGATION ---------- */
+function escapeHTML(value) {
 
-function openPage(name) {
+  const div = document.createElement("div");
 
-    pages.forEach(page => {
+  div.textContent = String(value ?? "");
 
-        page.classList.remove("active-page");
-
-    });
-
-
-    const page =
-        document.getElementById(name);
-
-    if (page) {
-
-        page.classList.add("active-page");
-
-    }
-
-
-    navButtons.forEach(button => {
-
-        button.classList.toggle(
-            "active",
-            button.dataset.page === name
-        );
-
-    });
-
+  return div.innerHTML;
 }
 
 
-navButtons.forEach(button => {
+function showToast(message) {
 
-    button.addEventListener("click", () => {
+  const toast = $("#toast");
 
-        openPage(button.dataset.page);
+  toast.textContent = message;
 
-    });
+  toast.classList.add("show");
 
-});
+  clearTimeout(window.__toastTimer);
 
+  window.__toastTimer = setTimeout(() => {
 
-openButtons.forEach(button => {
+    toast.classList.remove("show");
 
-    button.addEventListener("click", () => {
-
-        openPage(button.dataset.open);
-
-    });
-
-});
+  }, 2500);
+}
 
 
+function isValidEmail(email) {
 
-/* ---------- CLOCK ---------- */
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(email);
+}
+
+
+function isValidIPv4(ip) {
+
+  const parts = ip.trim().split(".");
+
+  if (parts.length !== 4) {
+    return false;
+  }
+
+  return parts.every(part => {
+
+    if (!/^\d+$/.test(part)) {
+      return false;
+    }
+
+    const number = Number(part);
+
+    return number >= 0 && number <= 255;
+
+  });
+}
+
+
+function isValidIPv6(ip) {
+
+  return /^[0-9a-f:]+$/i.test(ip) && ip.includes(":");
+}
+
+
+function isValidIP(ip) {
+
+  return isValidIPv4(ip) || isValidIPv6(ip);
+}
+
+
+function normalizeDomain(value) {
+
+  let input = value.trim();
+
+  try {
+
+    if (!/^https?:\/\//i.test(input)) {
+      input = "https://" + input;
+    }
+
+    const url = new URL(input);
+
+    return url.hostname;
+
+  } catch {
+
+    return null;
+  }
+}
+
+
+function safeOpen(url) {
+
+  try {
+
+    const parsed = new URL(url);
+
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      return;
+    }
+
+    window.open(
+      parsed.href,
+      "_blank",
+      "noopener,noreferrer"
+    );
+
+  } catch {
+
+    showToast("URL invalide");
+
+  }
+}
+
+
+/* =========================
+   CLOCK
+========================= */
 
 function updateClock() {
 
-    const now = new Date();
+  const now = new Date();
 
-    const time =
-        now.toLocaleTimeString(
-            "fr-FR",
-            {
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit"
-            }
-        );
-
-    document.getElementById("clock")
-        .textContent = time;
+  $("#clock").textContent =
+    now.toLocaleTimeString("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
 
 }
 
+updateClock();
 
 setInterval(updateClock, 1000);
 
-updateClock();
 
+/* =========================
+   NAVIGATION
+========================= */
 
+function openPage(pageName) {
 
-/* ---------- HISTORY ---------- */
+  $$(".page").forEach(page => {
 
-let history =
-    JSON.parse(
-        localStorage.getItem("osintHistory") || "[]"
+    page.classList.toggle(
+      "active",
+      page.id === pageName
     );
+
+  });
+
+
+  $$(".nav-item").forEach(button => {
+
+    button.classList.toggle(
+      "active",
+      button.dataset.page === pageName
+    );
+
+  });
+
+
+  $("#sidebar").classList.remove("open");
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+
+$$("[data-page]").forEach(button => {
+
+  button.addEventListener("click", () => {
+
+    openPage(button.dataset.page);
+
+  });
+
+});
+
+
+$("#menuButton").addEventListener("click", () => {
+
+  $("#sidebar").classList.toggle("open");
+
+});
+
+
+/* =========================
+   HISTORY
+========================= */
+
+const HISTORY_KEY = "osint_web_history_v3";
+
+
+function getHistory() {
+
+  try {
+
+    return JSON.parse(
+      localStorage.getItem(HISTORY_KEY)
+    ) || [];
+
+  } catch {
+
+    return [];
+
+  }
+}
 
 
 function saveHistory(type, value) {
 
-    history.unshift({
-        type: type,
-        value: value
+  const history = getHistory();
+
+  history.unshift({
+    type,
+    value,
+    date: Date.now()
+  });
+
+  const unique = [];
+
+  for (const item of history) {
+
+    const key = `${item.type}:${item.value}`;
+
+    if (!unique.some(
+      x => `${x.type}:${x.value}` === key
+    )) {
+
+      unique.push(item);
+
+    }
+
+  }
+
+  localStorage.setItem(
+    HISTORY_KEY,
+    JSON.stringify(unique.slice(0, 20))
+  );
+
+  renderHistory();
+}
+
+
+function renderHistory() {
+
+  const container = $("#historyList");
+
+  const history = getHistory();
+
+  if (!history.length) {
+
+    container.innerHTML =
+      `<div class="empty-history">No searches yet</div>`;
+
+    return;
+  }
+
+
+  container.innerHTML = history.map(item => {
+
+    return `
+      <div
+        class="history-entry"
+        data-history-type="${escapeHTML(item.type)}"
+        data-history-value="${escapeHTML(item.value)}"
+      >
+        <span class="history-type">${escapeHTML(item.type)}</span>
+        <span>${escapeHTML(item.value)}</span>
+      </div>
+    `;
+
+  }).join("");
+
+
+  $$(".history-entry").forEach(entry => {
+
+    entry.addEventListener("click", () => {
+
+      const type = entry.dataset.historyType;
+
+      const value = entry.dataset.historyValue;
+
+      if (type === "username" || type === "email") {
+
+        openPage("identity");
+
+        $("#identityInput").value = value;
+
+        runIdentitySearch(value);
+
+      }
+
+      if (type === "network") {
+
+        openPage("network");
+
+        $("#networkInput").value = value;
+
+        runNetworkSearch(value);
+
+      }
+
     });
 
-
-    history =
-        history.slice(0, 15);
-
-
-    localStorage.setItem(
-        "osintHistory",
-        JSON.stringify(history)
-    );
-
-
-    displayHistory();
+  });
 
 }
 
 
-function displayHistory() {
+$("#clearHistory").addEventListener("click", () => {
 
-    historyBox.innerHTML = "";
+  localStorage.removeItem(HISTORY_KEY);
+
+  renderHistory();
+
+  showToast("Historique supprimé");
+
+});
 
 
-    if (!history.length) {
+renderHistory();
 
-        historyBox.innerHTML =
-            '<div class="empty-history">No searches yet</div>';
 
-        return;
+/* =========================
+   IDENTITY
+========================= */
+
+let identityType = "username";
+
+
+$$(".type-tab").forEach(button => {
+
+  button.addEventListener("click", () => {
+
+    $$(".type-tab").forEach(x =>
+      x.classList.remove("active")
+    );
+
+    button.classList.add("active");
+
+    identityType = button.dataset.type;
+
+    $("#identityInput").placeholder =
+      identityType === "username"
+        ? "Exemple : kz4626"
+        : "Exemple : test@example.com";
+
+  });
+
+});
+
+
+$$("[data-example]").forEach(button => {
+
+  button.addEventListener("click", () => {
+
+    $("#identityInput").value =
+      button.dataset.example;
+
+  });
+
+});
+
+
+$("#identityForm").addEventListener("submit", event => {
+
+  event.preventDefault();
+
+  const value = $("#identityInput").value.trim();
+
+  if (!value) {
+
+    showToast("Entre une valeur");
+
+    return;
+  }
+
+  if (identityType === "email" && !isValidEmail(value)) {
+
+    showToast("Adresse e-mail invalide");
+
+    return;
+  }
+
+  if (identityType === "username" &&
+      !/^[a-zA-Z0-9._-]{2,50}$/.test(value)) {
+
+    showToast(
+      "Pseudo invalide : lettres, chiffres, . _ -"
+    );
+
+    return;
+  }
+
+  runIdentitySearch(value);
+
+});
+
+
+function runIdentitySearch(value) {
+
+  saveHistory(identityType, value);
+
+  const container = $("#identityResults");
+
+  container.innerHTML = "";
+
+  if (identityType === "username") {
+
+    const username = encodeURIComponent(value);
+
+    const sources = [
+
+      {
+        name: "Google",
+        url:
+          `https://www.google.com/search?q=%22${username}%22`,
+        description:
+          "Recherche générale du pseudo"
+      },
+
+      {
+        name: "Bing",
+        url:
+          `https://www.bing.com/search?q=%22${username}%22`,
+        description:
+          "Recherche sur Bing"
+      },
+
+      {
+        name: "GitHub",
+        url:
+          `https://github.com/search?q=${username}&type=users`,
+        description:
+          "Utilisateurs GitHub"
+      },
+
+      {
+        name: "Reddit",
+        url:
+          `https://www.reddit.com/search/?q=${username}`,
+        description:
+          "Recherche Reddit"
+      },
+
+      {
+        name: "DuckDuckGo",
+        url:
+          `https://duckduckgo.com/?q=%22${username}%22`,
+        description:
+          "Recherche DuckDuckGo"
+      }
+
+    ];
+
+    renderSourceResults(
+      container,
+      `Sources pour « ${value} »`,
+      sources
+    );
+
+    return;
+  }
+
+
+  const email = encodeURIComponent(value);
+
+  const sources = [
+
+    {
+      name: "Google",
+      url:
+        `https://www.google.com/search?q=%22${email}%22`,
+      description:
+        "Recherche publique de l'adresse"
+    },
+
+    {
+      name: "Bing",
+      url:
+        `https://www.bing.com/search?q=%22${email}%22`,
+      description:
+        "Recherche Bing"
+    },
+
+    {
+      name: "Have I Been Pwned",
+      url:
+        "https://haveibeenpwned.com/",
+      description:
+        "Vérification via le service officiel"
+    }
+
+  ];
+
+  renderSourceResults(
+    container,
+    `Sources pour « ${value} »`,
+    sources
+  );
+
+}
+
+
+function renderSourceResults(container, title, sources) {
+
+  const heading = document.createElement("div");
+
+  heading.className = "result-card";
+
+  heading.innerHTML = `
+    <div class="result-left">
+      <div class="result-title">
+        <span>●</span>
+        ${escapeHTML(title)}
+      </div>
+      <div class="result-url">
+        ${sources.length} sources publiques disponibles
+      </div>
+    </div>
+  `;
+
+  container.appendChild(heading);
+
+
+  sources.forEach(source => {
+
+    const card = document.createElement("div");
+
+    card.className = "result-card";
+
+    card.innerHTML = `
+      <div class="result-left">
+        <div class="result-title">
+          <span>↗</span>
+          ${escapeHTML(source.name)}
+        </div>
+
+        <div class="result-url">
+          ${escapeHTML(source.description)}
+        </div>
+      </div>
+
+      <button class="result-action">
+        OPEN
+      </button>
+    `;
+
+    card.querySelector("button")
+      .addEventListener("click", () => {
+
+        safeOpen(source.url);
+
+      });
+
+    container.appendChild(card);
+
+  });
+
+}
+
+
+/* =========================
+   NETWORK
+========================= */
+
+$("#networkForm").addEventListener("submit", event => {
+
+  event.preventDefault();
+
+  const value = $("#networkInput").value.trim();
+
+  if (!value) {
+
+    showToast("Entre une IP ou un domaine");
+
+    return;
+  }
+
+  runNetworkSearch(value);
+
+});
+
+
+async function runNetworkSearch(value) {
+
+  saveHistory("network", value);
+
+  const container = $("#networkResults");
+
+  container.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">◌</div>
+      <h3>Analyse en cours...</h3>
+      <p>Récupération des informations publiques.</p>
+    </div>
+  `;
+
+
+  if (isValidIP(value)) {
+
+    await lookupIP(value);
+
+    return;
+  }
+
+
+  const domain = normalizeDomain(value);
+
+  if (!domain) {
+
+    renderNetworkError(
+      "Adresse invalide",
+      "Entre une IP ou un domaine valide."
+    );
+
+    return;
+  }
+
+
+  await lookupDomain(domain);
+
+}
+
+
+async function lookupIP(ip) {
+
+  const container = $("#networkResults");
+
+  try {
+
+    const response = await fetch(
+      `https://ipwho.is/${encodeURIComponent(ip)}`
+    );
+
+    if (!response.ok) {
+      throw new Error("API unavailable");
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.message || "IP inconnue");
+    }
+
+
+    container.innerHTML = "";
+
+
+    addNetworkCard(
+      "Adresse IP",
+      data.ip || ip
+    );
+
+    addNetworkCard(
+      "Type",
+      data.type || "—"
+    );
+
+    addNetworkCard(
+      "Pays",
+      data.country || "—"
+    );
+
+    addNetworkCard(
+      "Région",
+      data.region || "—"
+    );
+
+    addNetworkCard(
+      "Ville",
+      data.city || "—"
+    );
+
+    addNetworkCard(
+      "Organisation",
+      data.connection?.org || "—"
+    );
+
+    addNetworkCard(
+      "ISP",
+      data.connection?.isp || "—"
+    );
+
+    addNetworkCard(
+      "ASN",
+      data.connection?.asn || "—"
+    );
+
+
+    const mapUrl =
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        `${data.latitude},${data.longitude}`
+      )}`;
+
+
+    addActionCard(
+      "Localisation approximative",
+      "Ouvrir les coordonnées dans Google Maps",
+      mapUrl
+    );
+
+
+  } catch (error) {
+
+    renderNetworkError(
+      "Impossible de récupérer les données",
+      "L'API publique n'a pas répondu. Tu peux quand même utiliser les outils externes ci-dessous."
+    );
+
+
+    addActionCard(
+      "IPInfo",
+      "Ouvrir la recherche externe",
+      `https://ipinfo.io/${encodeURIComponent(ip)}`
+    );
+
+    addActionCard(
+      "Google",
+      "Rechercher cette IP",
+      `https://www.google.com/search?q=${encodeURIComponent(ip)}`
+    );
+
+  }
+
+}
+
+
+async function lookupDomain(domain) {
+
+  const container = $("#networkResults");
+
+  try {
+
+    const response = await fetch(
+      `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`
+    );
+
+    if (!response.ok) {
+      throw new Error("DNS unavailable");
+    }
+
+    const data = await response.json();
+
+
+    container.innerHTML = "";
+
+
+    addNetworkCard(
+      "Domaine",
+      domain
+    );
+
+
+    const answers = data.Answer || [];
+
+    if (answers.length) {
+
+      answers.forEach(answer => {
+
+        addNetworkCard(
+          `DNS ${answer.type}`,
+          answer.data
+        );
+
+      });
+
+    } else {
+
+      addNetworkCard(
+        "DNS",
+        "Aucun enregistrement A trouvé"
+      );
 
     }
 
 
-    history.forEach(item => {
+    addActionCard(
+      "WHOIS",
+      "Rechercher les informations du domaine",
+      `https://who.is/whois/${encodeURIComponent(domain)}`
+    );
 
-        const element =
-            document.createElement("div");
 
-        element.className =
-            "history-item";
+    addActionCard(
+      "Google",
+      "Rechercher le domaine",
+      `https://www.google.com/search?q=${encodeURIComponent(domain)}`
+    );
 
-        element.textContent =
-            item.type.toUpperCase() +
-            "  •  " +
-            item.value;
 
-        historyBox.appendChild(element);
+    addActionCard(
+      "SecurityTrails",
+      "Ouvrir la recherche",
+      `https://securitytrails.com/domain/${encodeURIComponent(domain)}/history/a`
+    );
+
+
+  } catch {
+
+    renderNetworkError(
+      "Analyse DNS impossible",
+      "Le service DNS n'a pas répondu."
+    );
+
+  }
+
+}
+
+
+function addNetworkCard(title, value) {
+
+  const container = $("#networkResults");
+
+  const card = document.createElement("div");
+
+  card.className = "result-card";
+
+  card.innerHTML = `
+    <div class="result-left">
+      <div class="result-title">
+        <span>●</span>
+        ${escapeHTML(title)}
+      </div>
+
+      <div class="result-url">
+        ${escapeHTML(value)}
+      </div>
+    </div>
+  `;
+
+  container.appendChild(card);
+
+}
+
+
+function addActionCard(title, description, url) {
+
+  const container = $("#networkResults");
+
+  const card = document.createElement("div");
+
+  card.className = "result-card";
+
+  card.innerHTML = `
+    <div class="result-left">
+      <div class="result-title">
+        <span>↗</span>
+        ${escapeHTML(title)}
+      </div>
+
+      <div class="result-url">
+        ${escapeHTML(description)}
+      </div>
+    </div>
+
+    <button class="result-action">
+      OPEN
+    </button>
+  `;
+
+  card.querySelector("button")
+    .addEventListener("click", () => {
+
+      safeOpen(url);
 
     });
 
-}
-
-
-displayHistory();
-
-
-
-/* ---------- RESULT SYSTEM ---------- */
-
-function showResults(title, links) {
-
-    results.innerHTML = "";
-
-    const grid =
-        document.createElement("div");
-
-    grid.className =
-        "result-grid";
-
-
-    links.forEach(item => {
-
-        const card =
-            document.createElement("a");
-
-        card.className =
-            "result";
-
-        card.href =
-            item.url;
-
-        card.target =
-            "_blank";
-
-        card.rel =
-            "noopener noreferrer";
-
-
-        card.innerHTML = `
-
-            <div class="result-title">
-                ${escapeHTML(item.name)} ↗
-            </div>
-
-            <div class="result-sub">
-                ${escapeHTML(item.description || "Open source")}
-            </div>
-
-        `;
-
-
-        grid.appendChild(card);
-
-    });
-
-
-    results.appendChild(grid);
-
-
-    results.scrollIntoView({
-        behavior: "smooth"
-    });
+  container.appendChild(card);
 
 }
 
 
-function escapeHTML(text) {
+function renderNetworkError(title, description) {
 
-    const div =
-        document.createElement("div");
-
-    div.textContent =
-        text;
-
-    return div.innerHTML;
-
-}
-
-
-
-/* ---------- USERNAME ---------- */
-
-function usernameSearch(value) {
-
-    const q =
-        encodeURIComponent(value);
-
-
-    const links = [
-
-        {
-            name: "Google",
-            description: "Exact public search",
-            url:
-                "https://www.google.com/search?q=" +
-                encodeURIComponent('"' + value + '"')
-        },
-
-        {
-            name: "Reddit",
-            description: "Reddit search",
-            url:
-                "https://www.reddit.com/search/?q=" +
-                q
-        },
-
-        {
-            name: "GitHub",
-            description: "GitHub users",
-            url:
-                "https://github.com/search?q=" +
-                q +
-                "&type=users"
-        },
-
-        {
-            name: "X",
-            description: "X search",
-            url:
-                "https://x.com/search?q=" +
-                q
-        },
-
-        {
-            name: "Instagram",
-            description: "Public web search",
-            url:
-                "https://www.google.com/search?q=" +
-                encodeURIComponent(
-                    "site:instagram.com " +
-                    value
-                )
-        },
-
-        {
-            name: "TikTok",
-            description: "Public web search",
-            url:
-                "https://www.google.com/search?q=" +
-                encodeURIComponent(
-                    "site:tiktok.com " +
-                    value
-                )
-        },
-
-        {
-            name: "YouTube",
-            description: "YouTube search",
-            url:
-                "https://www.youtube.com/results?search_query=" +
-                q
-        },
-
-        {
-            name: "Twitch",
-            description: "Twitch search",
-            url:
-                "https://www.google.com/search?q=" +
-                encodeURIComponent(
-                    "site:twitch.tv " +
-                    value
-                )
-        },
-
-        {
-            name: "Steam",
-            description: "Steam public search",
-            url:
-                "https://www.google.com/search?q=" +
-                encodeURIComponent(
-                    "site:steamcommunity.com " +
-                    value
-                )
-        }
-
-    ];
-
-
-    showResults(
-        "Username",
-        links
-    );
-
-
-    saveHistory(
-        "username",
-        value
-    );
+  $("#networkResults").innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">!</div>
+      <h3>${escapeHTML(title)}</h3>
+      <p>${escapeHTML(description)}</p>
+    </div>
+  `;
 
 }
 
 
-
-/* ---------- EMAIL ---------- */
-
-function emailSearch(value) {
-
-    const exact =
-        encodeURIComponent(
-            '"' + value + '"'
-        );
-
-
-    const links = [
-
-        {
-            name: "Google",
-            description: "Exact public search",
-            url:
-                "https://www.google.com/search?q=" +
-                exact
-        },
-
-        {
-            name: "DuckDuckGo",
-            description: "Exact public search",
-            url:
-                "https://duckduckgo.com/?q=" +
-                exact
-        },
-
-        {
-            name: "Bing",
-            description: "Exact public search",
-            url:
-                "https://www.bing.com/search?q=" +
-                exact
-        },
-
-        {
-            name: "Have I Been Pwned",
-            description: "Breach lookup service",
-            url:
-                "https://haveibeenpwned.com/"
-        },
-
-        {
-            name: "Gravatar",
-            description: "Public avatar lookup",
-            url:
-                "https://en.gravatar.com/site/check/" +
-                encodeURIComponent(value)
-        }
-
-    ];
-
-
-    showResults(
-        "E-mail",
-        links
-    );
-
-
-    saveHistory(
-        "email",
-        value
-    );
-
-}
-
-
-
-/* ---------- DOMAIN ---------- */
-
-function domainSearch(value) {
-
-    const domain =
-        value
-            .replace(/^https?:\/\//, "")
-            .split("/")[0];
-
-
-    const d =
-        encodeURIComponent(domain);
-
-
-    const links = [
-
-        {
-            name: "Google site:",
-            description: "Indexed pages",
-            url:
-                "https://www.google.com/search?q=" +
-                encodeURIComponent(
-                    "site:" + domain
-                )
-        },
-
-        {
-            name: "ICANN Lookup",
-            description: "Domain registration lookup",
-            url:
-                "https://lookup.icann.org/en/lookup?name=" +
-                d
-        },
-
-        {
-            name: "DNSlytics",
-            description: "DNS information",
-            url:
-                "https://dnslytics.com/domain/" +
-                d
-        },
-
-        {
-            name: "SecurityTrails",
-            description: "Domain intelligence",
-            url:
-                "https://securitytrails.com/domain/" +
-                d
-        },
-
-        {
-            name: "Wayback Machine",
-            description: "Historical pages",
-            url:
-                "https://web.archive.org/web/*/" +
-                d
-        },
-
-        {
-            name: "VirusTotal",
-            description: "Public domain analysis",
-            url:
-                "https://www.virustotal.com/gui/domain/" +
-                d
-        }
-
-    ];
-
-
-    showResults(
-        "Domain",
-        links
-    );
-
-
-    saveHistory(
-        "domain",
-        domain
-    );
-
-}
-
-
-
-/* ---------- IP ---------- */
-
-function ipSearch(value) {
-
-    const ip =
-        encodeURIComponent(value);
-
-
-    const links = [
-
-        {
-            name: "IPinfo",
-            description: "Public IP information",
-            url:
-                "https://ipinfo.io/" +
-                ip
-        },
-
-        {
-            name: "AbuseIPDB",
-            description: "Public reputation lookup",
-            url:
-                "https://www.abuseipdb.com/check/" +
-                ip
-        },
-
-        {
-            name: "VirusTotal",
-            description: "Public IP analysis",
-            url:
-                "https://www.virustotal.com/gui/ip-address/" +
-                ip
-        },
-
-        {
-            name: "Google",
-            description: "Public web search",
-            url:
-                "https://www.google.com/search?q=" +
-                encodeURIComponent(
-                    '"' + value + '"'
-                )
-        }
-
-    ];
-
-
-    showResults(
-        "IP",
-        links
-    );
-
-
-    saveHistory(
-        "ip",
-        value
-    );
-
-}
-
-
-
-/* ---------- URL ---------- */
-
-function urlSearch(value) {
-
-    const encoded =
-        encodeURIComponent(value);
-
-
-    const links = [
-
-        {
-            name: "VirusTotal",
-            description: "URL analysis",
-            url:
-                "https://www.virustotal.com/gui/search/" +
-                encoded
-        },
-
-        {
-            name: "URLScan",
-            description: "Public URL search",
-            url:
-                "https://urlscan.io/search/#" +
-                encoded
-        },
-
-        {
-            name: "Wayback Machine",
-            description: "Historical snapshots",
-            url:
-                "https://web.archive.org/web/*/" +
-                encoded
-        },
-
-        {
-            name: "Google",
-            description: "Public search",
-            url:
-                "https://www.google.com/search?q=" +
-                encoded
-        }
-
-    ];
-
-
-    showResults(
-        "URL",
-        links
-    );
-
-
-    saveHistory(
-        "url",
-        value
-    );
-
-}
-
-
-
-/* ---------- GLOBAL SEARCH ---------- */
-
-document
-    .getElementById("globalButton")
-    .addEventListener(
-        "click",
-        globalSearch
-    );
-
-
-document
-    .getElementById("globalSearch")
-    .addEventListener(
-        "keydown",
-        event => {
-
-            if (event.key === "Enter") {
-
-                globalSearch();
-
-            }
-
-        }
-    );
-
-
-function globalSearch() {
-
-    const value =
-        document
-            .getElementById("globalSearch")
-            .value
-            .trim();
-
-
-    const type =
-        document
-            .getElementById("globalType")
-            .value;
-
+/* =========================
+   IMAGE SEARCH
+========================= */
+
+$("#imageSearchButton").addEventListener(
+  "click",
+  () => {
+
+    const value = $("#imageUrl").value.trim();
 
     if (!value) {
 
-        return;
+      showToast("Entre une URL d'image");
 
+      return;
     }
 
 
-    if (type === "username") {
+    try {
 
-        usernameSearch(value);
+      const url = new URL(value);
 
-    }
+      if (!["http:", "https:"].includes(url.protocol)) {
+        throw new Error();
+      }
 
+      runImageSearch(url.href);
 
-    if (type === "email") {
+    } catch {
 
-        emailSearch(value);
-
-    }
-
-
-    if (type === "domain") {
-
-        domainSearch(value);
+      showToast("URL d'image invalide");
 
     }
 
+  }
+);
 
-    if (type === "ip") {
 
-        ipSearch(value);
+function runImageSearch(imageUrl) {
 
+  const container = $("#imageResults");
+
+  container.innerHTML = "";
+
+
+  const encoded = encodeURIComponent(imageUrl);
+
+
+  const sources = [
+
+    {
+      name: "Google Lens",
+      description: "Recherche visuelle Google",
+      url:
+        `https://lens.google.com/uploadbyurl?url=${encoded}`
+    },
+
+    {
+      name: "Bing Visual Search",
+      description: "Recherche visuelle Bing",
+      url:
+        `https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl=${encoded}`
+    },
+
+    {
+      name: "Yandex Images",
+      description: "Recherche d'image Yandex",
+      url:
+        `https://yandex.com/images/search?rpt=imageview&url=${encoded}`
     }
 
+  ];
 
-    if (type === "url") {
 
-        urlSearch(value);
+  renderSourceResults(
+    container,
+    "Reverse image search",
+    sources
+  );
 
-    }
+
+  showToast("Moteurs de recherche prêts");
 
 }
 
 
+/* =========================
+   DORK GENERATOR
+========================= */
 
-/* ---------- IDENTITY ---------- */
+$("#dorkType").addEventListener("change", () => {
 
-let identityType =
-    "username";
+  const type = $("#dorkType").value;
 
-
-document
-    .querySelectorAll("[data-identity]")
-    .forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                identityType =
-                    button.dataset.identity;
-
-
-                document
-                    .querySelectorAll("[data-identity]")
-                    .forEach(b =>
-                        b.classList.remove("active")
-                    );
-
-
-                button.classList.add("active");
-
-            }
-        );
-
-    });
-
-
-document
-    .getElementById("identityButton")
-    .addEventListener(
-        "click",
-        () => {
-
-            const value =
-                document
-                    .getElementById("identityInput")
-                    .value
-                    .trim();
-
-
-            if (!value) return;
-
-
-            if (identityType === "username") {
-
-                usernameSearch(value);
-
-            } else {
-
-                emailSearch(value);
-
-            }
-
-
-            openPage("dashboard");
-
-        }
+  $("#fileTypeContainer")
+    .classList.toggle(
+      "hidden",
+      type !== "filetype"
     );
 
+});
 
 
-/* ---------- IP ---------- */
-
-document
-    .getElementById("ipButton")
-    .addEventListener(
-        "click",
-        () => {
-
-            const value =
-                document
-                    .getElementById("ipInput")
-                    .value
-                    .trim();
-
-
-            if (value) {
-
-                ipSearch(value);
-
-                openPage("dashboard");
-
-            }
-
-        }
-    );
-
-
-
-/* ---------- DOMAIN ---------- */
-
-document
-    .getElementById("domainButton")
-    .addEventListener(
-        "click",
-        () => {
-
-            const value =
-                document
-                    .getElementById("domainInput")
-                    .value
-                    .trim();
-
-
-            if (value) {
-
-                domainSearch(value);
-
-                openPage("dashboard");
-
-            }
-
-        }
-    );
-
-
-
-/* ---------- URL ---------- */
-
-document
-    .getElementById("urlButton")
-    .addEventListener(
-        "click",
-        () => {
-
-            const value =
-                document
-                    .getElementById("urlInput")
-                    .value
-                    .trim();
-
-
-            if (value) {
-
-                urlSearch(value);
-
-                openPage("dashboard");
-
-            }
-
-        }
-    );
-
-
-
-/* ---------- IMAGE ---------- */
-
-document
-    .getElementById("imageButton")
-    .addEventListener(
-        "click",
-        () => {
-
-            const value =
-                document
-                    .getElementById("imageInput")
-                    .value
-                    .trim();
-
-
-            if (!value) return;
-
-
-            const encoded =
-                encodeURIComponent(value);
-
-
-            showResults(
-                "Image",
-                [
-
-                    {
-                        name: "Google Lens",
-                        description: "Reverse image search",
-                        url:
-                            "https://lens.google.com/uploadbyurl?url=" +
-                            encoded
-                    },
-
-                    {
-                        name: "TinEye",
-                        description: "Reverse image search",
-                        url:
-                            "https://tineye.com/search?url=" +
-                            encoded
-                    },
-
-                    {
-                        name: "Google Images",
-                        description: "Image search",
-                        url:
-                            "https://www.google.com/search?tbm=isch&q=" +
-                            encoded
-                    }
-
-                ]
-            );
-
-
-            saveHistory(
-                "image",
-                value
-            );
-
-
-            openPage("dashboard");
-
-        }
-    );
-
-
-
-/* ---------- DORK GENERATOR ---------- */
-
-document
-    .getElementById("dorkButton")
-    .addEventListener(
-        "click",
-        generateDork
-    );
+$("#generateDork").addEventListener(
+  "click",
+  generateDork
+);
 
 
 function generateDork() {
 
-    const domain =
-        document
-            .getElementById("dorkDomain")
-            .value
-            .trim();
+  const query =
+    $("#dorkQuery").value.trim();
+
+  const type =
+    $("#dorkType").value;
 
 
-    const keyword =
-        document
-            .getElementById("dorkKeyword")
-            .value
-            .trim();
+  if (!query) {
+
+    showToast("Entre une recherche");
+
+    return;
+  }
 
 
-    const file =
-        document
-            .getElementById("dorkFile")
-            .value;
+  let dork = "";
 
 
-    let query = "";
+  switch (type) {
+
+    case "site":
+
+      dork = `site:${query}`;
+
+      break;
 
 
-    if (domain) {
+    case "filetype":
 
-        query +=
-            "site:" +
-            domain +
-            " ";
+      dork =
+        `site:${query} filetype:${$("#fileType").value}`;
 
-    }
+      break;
 
 
-    if (keyword) {
+    case "intitle":
 
-        query +=
-            '"' +
-            keyword +
-            '" ';
+      dork = `intitle:"${query}"`;
 
-    }
+      break;
 
 
-    if (file) {
+    case "inurl":
 
-        query +=
-            "filetype:" +
-            file;
+      dork = `inurl:${query}`;
 
-    }
+      break;
 
 
-    query =
-        query.trim();
+    case "combined":
+
+      dork =
+        `site:${query} -www "login"`;
+
+      break;
+
+  }
 
 
-    document
-        .getElementById("dorkOutput")
-        .textContent =
-        query || "--";
+  $("#dorkText").textContent = dork;
+
+  $("#dorkOutput")
+    .classList.remove("hidden");
 
 }
 
 
-document
-    .getElementById("copyDork")
-    .addEventListener(
-        "click",
-        async () => {
+$("#copyDork").addEventListener(
+  "click",
+  async () => {
 
-            const text =
-                document
-                    .getElementById("dorkOutput")
-                    .textContent;
+    const text =
+      $("#dorkText").textContent;
+
+    try {
+
+      await navigator.clipboard.writeText(text);
+
+      showToast("Dork copié");
+
+    } catch {
+
+      showToast(
+        "Copie automatique non disponible"
+      );
+
+    }
+
+  }
+);
 
 
-            if (text !== "--") {
+$("#openDork").addEventListener(
+  "click",
+  () => {
 
-                await navigator.clipboard.writeText(text);
+    const query =
+      $("#dorkText").textContent.trim();
 
-            }
+    if (!query) {
+      return;
+    }
 
-        }
+    safeOpen(
+      `https://www.google.com/search?q=${encodeURIComponent(query)}`
     );
 
+  }
+);
 
 
-/* ---------- SHA-256 ---------- */
+$$("[data-dork]").forEach(button => {
 
-document
-    .getElementById("hashButton")
-    .addEventListener(
-        "click",
-        async () => {
+  button.addEventListener("click", () => {
 
-            const text =
-                document
-                    .getElementById("hashInput")
-                    .value;
+    const type = button.dataset.dork;
 
+    $("#dorkType").value = type;
 
-            const data =
-                new TextEncoder()
-                    .encode(text);
-
-
-            const hash =
-                await crypto.subtle.digest(
-                    "SHA-256",
-                    data
-                );
-
-
-            const result =
-                Array
-                    .from(new Uint8Array(hash))
-                    .map(
-                        byte =>
-                            byte
-                                .toString(16)
-                                .padStart(2, "0")
-                    )
-                    .join("");
-
-
-            document
-                .getElementById("hashOutput")
-                .textContent =
-                result;
-
-        }
+    $("#dorkType").dispatchEvent(
+      new Event("change")
     );
 
+    $("#dorkQuery").focus();
 
-
-/* ---------- BASE64 ---------- */
-
-document
-    .getElementById("encodeButton")
-    .addEventListener(
-        "click",
-        () => {
-
-            const text =
-                document
-                    .getElementById("baseInput")
-                    .value;
-
-
-            try {
-
-                document
-                    .getElementById("baseOutput")
-                    .textContent =
-                    btoa(
-                        unescape(
-                            encodeURIComponent(text)
-                        )
-                    );
-
-            } catch {
-
-                document
-                    .getElementById("baseOutput")
-                    .textContent =
-                    "Erreur";
-
-            }
-
-        }
+    showToast(
+      `${type}: sélectionné`
     );
 
+  });
 
-document
-    .getElementById("decodeButton")
-    .addEventListener(
-        "click",
-        () => {
-
-            const text =
-                document
-                    .getElementById("baseInput")
-                    .value;
+});
 
 
-            try {
+/* =========================
+   UTILITIES
+========================= */
 
-                document
-                    .getElementById("baseOutput")
-                    .textContent =
-                    decodeURIComponent(
-                        escape(
-                            atob(text)
-                        )
-                    );
+$("#validateIP").addEventListener(
+  "click",
+  () => {
 
-            } catch {
+    const value =
+      $("#ipValidatorInput").value.trim();
 
-                document
-                    .getElementById("baseOutput")
-                    .textContent =
-                    "Base64 invalide";
-
-            }
-
-        }
-    );
+    const result =
+      $("#ipValidationResult");
 
 
+    if (isValidIP(value)) {
 
-/* ---------- URL PARSER ---------- */
+      result.className =
+        "validation ok";
 
-document
-    .getElementById("parserButton")
-    .addEventListener(
-        "click",
-        () => {
+      result.textContent =
+        "✓ Adresse IP valide";
 
-            const value =
-                document
-                    .getElementById("parserInput")
-                    .value
-                    .trim();
+    } else {
 
+      result.className =
+        "validation bad";
 
-            try {
+      result.textContent =
+        "✕ Adresse IP invalide";
 
-                const url =
-                    new URL(value);
+    }
 
-
-                document
-                    .getElementById("parserOutput")
-                    .innerHTML =
-
-                    "Protocol: " +
-                    escapeHTML(url.protocol) +
-                    "<br>" +
-
-                    "Host: " +
-                    escapeHTML(url.hostname) +
-                    "<br>" +
-
-                    "Port: " +
-                    escapeHTML(url.port || "default") +
-                    "<br>" +
-
-                    "Path: " +
-                    escapeHTML(url.pathname) +
-                    "<br>" +
-
-                    "Query: " +
-                    escapeHTML(url.search || "none");
-
-            } catch {
-
-                document
-                    .getElementById("parserOutput")
-                    .textContent =
-                    "URL invalide";
-
-            }
-
-        }
-    );
+  }
+);
 
 
+$("#validateEmail").addEventListener(
+  "click",
+  () => {
 
-/* ---------- TIMESTAMP ---------- */
+    const value =
+      $("#emailValidatorInput").value.trim();
 
-document
-    .getElementById("timestampButton")
-    .addEventListener(
-        "click",
-        () => {
-
-            const now =
-                Date.now();
+    const result =
+      $("#emailValidationResult");
 
 
-            const date =
-                new Date();
+    if (isValidEmail(value)) {
+
+      result.className =
+        "validation ok";
+
+      result.textContent =
+        "✓ Format e-mail valide";
+
+    } else {
+
+      result.className =
+        "validation bad";
+
+      result.textContent =
+        "✕ Format e-mail invalide";
+
+    }
+
+  }
+);
 
 
-            document
-                .getElementById("timestampOutput")
-                .innerHTML =
+$("#parseURL").addEventListener(
+  "click",
+  () => {
 
-                "Unix: " +
-                now +
-                "<br><br>" +
+    const value =
+      $("#urlParserInput").value.trim();
 
-                "ISO: " +
-                date.toISOString();
-
-        }
-    );
+    const result =
+      $("#urlParserResult");
 
 
+    try {
 
-/* ---------- CLEAR ---------- */
+      const url =
+        new URL(
+          /^https?:\/\//i.test(value)
+            ? value
+            : `https://${value}`
+        );
 
-document
-    .getElementById("clearResults")
-    .addEventListener(
-        "click",
-        () => {
 
-            results.innerHTML = `
+      result.className =
+        "validation ok";
 
-                <div class="empty-results">
 
-                    <div class="empty-icon">
-                        ⌕
-                    </div>
+      result.innerHTML = `
+        <strong>Protocol :</strong>
+        ${escapeHTML(url.protocol)}
+        <br>
 
-                    <strong>
-                        No investigation started
-                    </strong>
+        <strong>Host :</strong>
+        ${escapeHTML(url.hostname)}
+        <br>
 
-                    <span>
-                        Lance une recherche pour afficher les sources.
-                    </span>
+        <strong>Path :</strong>
+        ${escapeHTML(url.pathname)}
+        <br>
 
-                </div>
+        <strong>Port :</strong>
+        ${escapeHTML(url.port || "default")}
+      `;
 
-            `;
 
-        }
-    );
+    } catch {
+
+      result.className =
+        "validation bad";
+
+      result.textContent =
+        "✕ URL invalide";
+
+    }
+
+  }
+);
+
+
+/* =========================
+   STARTUP
+========================= */
+
+console.log(
+  "%cOSINT.WEB V3 ONLINE",
+  "color:#55e6a5;font-weight:bold"
+);
