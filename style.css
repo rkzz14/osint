@@ -1,1298 +1,289 @@
-"use strict";
+:root {
+  --bg: #070a10;
+  --panel: #0d111a;
+  --panel-2: #111722;
+  --border: #1c2634;
 
-/*
-  OSINT.WEB V3
-  Front-end only.
+  --text: #eef4ff;
+  --muted: #8995a8;
 
-  Les fonctions qui nécessitent un backend/API externe
-  ne prétendent pas avoir trouvé des informations lorsqu'elles
-  n'ont pas réellement obtenu de résultat.
-*/
+  --accent: #55e6a5;
+  --accent-2: #38c98d;
+
+  --danger: #ff667d;
+
+  --radius: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+
+  background:
+    radial-gradient(
+      circle at 80% 0%,
+      rgba(85, 230, 165, 0.09),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 10% 90%,
+      rgba(50, 100, 255, 0.05),
+      transparent 30%
+    ),
+    var(--bg);
+
+  color: var(--text);
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+}
 
 
 /* =========================
-   HELPERS
+   SIDEBAR
 ========================= */
 
-const $ = (selector) => document.querySelector(selector);
+.sidebar {
+  width: 265px;
+  min-width: 265px;
 
-const $$ = (selector) => [...document.querySelectorAll(selector)];
+  height: 100vh;
 
+  position: sticky;
+  top: 0;
 
-function escapeHTML(value) {
+  padding: 22px 15px;
 
-  const div = document.createElement("div");
+  display: flex;
+  flex-direction: column;
 
-  div.textContent = String(value ?? "");
-
-  return div.innerHTML;
-}
-
-
-function showToast(message) {
-
-  const toast = $("#toast");
-
-  toast.textContent = message;
-
-  toast.classList.add("show");
-
-  clearTimeout(window.__toastTimer);
-
-  window.__toastTimer = setTimeout(() => {
-
-    toast.classList.remove("show");
-
-  }, 2500);
-}
-
-
-function isValidEmail(email) {
-
-  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(email);
-}
-
-
-function isValidIPv4(ip) {
-
-  const parts = ip.trim().split(".");
-
-  if (parts.length !== 4) {
-    return false;
-  }
-
-  return parts.every(part => {
-
-    if (!/^\d+$/.test(part)) {
-      return false;
-    }
-
-    const number = Number(part);
-
-    return number >= 0 && number <= 255;
-
-  });
-}
-
-
-function isValidIPv6(ip) {
-
-  return /^[0-9a-f:]+$/i.test(ip) && ip.includes(":");
-}
-
-
-function isValidIP(ip) {
-
-  return isValidIPv4(ip) || isValidIPv6(ip);
-}
-
-
-function normalizeDomain(value) {
-
-  let input = value.trim();
-
-  try {
-
-    if (!/^https?:\/\//i.test(input)) {
-      input = "https://" + input;
-    }
-
-    const url = new URL(input);
-
-    return url.hostname;
-
-  } catch {
-
-    return null;
-  }
-}
-
-
-function safeOpen(url) {
-
-  try {
-
-    const parsed = new URL(url);
-
-    if (!["http:", "https:"].includes(parsed.protocol)) {
-      return;
-    }
-
-    window.open(
-      parsed.href,
-      "_blank",
-      "noopener,noreferrer"
+  background:
+    linear-gradient(
+      180deg,
+      #0b0f17 0%,
+      #080b11 100%
     );
 
-  } catch {
+  border-right: 1px solid var(--border);
 
-    showToast("URL invalide");
-
-  }
+  z-index: 100;
 }
 
+.brand {
+  display: flex;
+  align-items: center;
 
-/* =========================
-   CLOCK
-========================= */
+  gap: 12px;
 
-function updateClock() {
-
-  const now = new Date();
-
-  $("#clock").textContent =
-    now.toLocaleTimeString("fr-FR", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit"
-    });
-
+  padding: 0 8px;
 }
 
-updateClock();
+.brand-logo {
+  width: 42px;
+  height: 42px;
 
-setInterval(updateClock, 1000);
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(85, 230, 165, 0.35);
+
+  border-radius: 12px;
+
+  color: var(--accent);
+
+  background: rgba(85, 230, 165, 0.07);
+
+  font-size: 23px;
+
+  box-shadow:
+    0 0 25px rgba(85, 230, 165, 0.06);
+}
+
+.brand strong {
+  display: block;
+
+  font-size: 17px;
+
+  letter-spacing: 1px;
+}
+
+.brand strong span {
+  color: var(--accent);
+}
+
+.brand small {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #637084;
+
+  font-size: 9px;
+
+  letter-spacing: 2px;
+}
+
+.status {
+  margin: 22px 8px 15px;
+
+  padding: 8px 11px;
+
+  border: 1px solid rgba(85, 230, 165, 0.08);
+
+  border-radius: 8px;
+
+  background: rgba(85, 230, 165, 0.04);
+
+  color: #91a0b4;
+
+  font-size: 10px;
+
+  letter-spacing: 1.5px;
+}
+
+.status-dot {
+  display: inline-block;
+
+  width: 7px;
+  height: 7px;
+
+  margin-right: 7px;
+
+  border-radius: 50%;
+
+  background: var(--accent);
+
+  box-shadow:
+    0 0 8px var(--accent);
+}
 
 
 /* =========================
    NAVIGATION
 ========================= */
 
-function openPage(pageName) {
+.navigation {
+  display: flex;
 
-  $$(".page").forEach(page => {
+  flex-direction: column;
 
-    page.classList.toggle(
-      "active",
-      page.id === pageName
-    );
-
-  });
-
-
-  $$(".nav-item").forEach(button => {
-
-    button.classList.toggle(
-      "active",
-      button.dataset.page === pageName
-    );
-
-  });
-
-
-  $("#sidebar").classList.remove("open");
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
+  gap: 5px;
 }
 
+.nav-item {
+  width: 100%;
 
-$$("[data-page]").forEach(button => {
+  display: flex;
+  align-items: center;
 
-  button.addEventListener("click", () => {
+  gap: 13px;
 
-    openPage(button.dataset.page);
+  padding: 11px 10px;
 
-  });
+  border: 1px solid transparent;
 
-});
+  border-radius: 11px;
 
+  background: transparent;
 
-$("#menuButton").addEventListener("click", () => {
+  color: var(--muted);
 
-  $("#sidebar").classList.toggle("open");
+  text-align: left;
 
-});
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.035);
+
+  border-color: var(--border);
+
+  color: white;
+
+  transform: translateX(2px);
+}
+
+.nav-item.active {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(85, 230, 165, 0.11),
+      rgba(85, 230, 165, 0.025)
+    );
+
+  border-color: rgba(85, 230, 165, 0.14);
+
+  color: var(--accent);
+}
+
+.nav-item > span {
+  width: 25px;
+
+  text-align: center;
+
+  font-size: 17px;
+}
+
+.nav-item b {
+  display: block;
+
+  font-size: 13px;
+}
+
+.nav-item small {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #606d80;
+
+  font-size: 10px;
+}
+
+.nav-item.active small {
+  color: #789785;
+}
 
 
 /* =========================
    HISTORY
 ========================= */
 
-const HISTORY_KEY = "osint_web_history_v3";
-
-
-function getHistory() {
-
-  try {
-
-    return JSON.parse(
-      localStorage.getItem(HISTORY_KEY)
-    ) || [];
-
-  } catch {
-
-    return [];
-
-  }
+.sidebar-bottom {
+  margin-top: auto;
 }
 
-
-function saveHistory(type, value) {
-
-  const history = getHistory();
-
-  history.unshift({
-    type,
-    value,
-    date: Date.now()
-  });
-
-  const unique = [];
-
-  for (const item of history) {
-
-    const key = `${item.type}:${item.value}`;
-
-    if (!unique.some(
-      x => `${x.type}:${x.value}` === key
-    )) {
-
-      unique.push(item);
-
-    }
-
-  }
-
-  localStorage.setItem(
-    HISTORY_KEY,
-    JSON.stringify(unique.slice(0, 20))
-  );
-
-  renderHistory();
-}
-
-
-function renderHistory() {
-
-  const container = $("#historyList");
-
-  const history = getHistory();
-
-  if (!history.length) {
-
-    container.innerHTML =
-      `<div class="empty-history">No searches yet</div>`;
-
-    return;
-  }
-
-
-  container.innerHTML = history.map(item => {
-
-    return `
-      <div
-        class="history-entry"
-        data-history-type="${escapeHTML(item.type)}"
-        data-history-value="${escapeHTML(item.value)}"
-      >
-        <span class="history-type">${escapeHTML(item.type)}</span>
-        <span>${escapeHTML(item.value)}</span>
-      </div>
-    `;
-
-  }).join("");
-
-
-  $$(".history-entry").forEach(entry => {
-
-    entry.addEventListener("click", () => {
-
-      const type = entry.dataset.historyType;
-
-      const value = entry.dataset.historyValue;
-
-      if (type === "username" || type === "email") {
-
-        openPage("identity");
-
-        $("#identityInput").value = value;
-
-        runIdentitySearch(value);
-
-      }
-
-      if (type === "network") {
-
-        openPage("network");
-
-        $("#networkInput").value = value;
-
-        runNetworkSearch(value);
-
-      }
-
-    });
-
-  });
-
-}
-
-
-$("#clearHistory").addEventListener("click", () => {
-
-  localStorage.removeItem(HISTORY_KEY);
-
-  renderHistory();
-
-  showToast("Historique supprimé");
-
-});
-
-
-renderHistory();
-
-
-/* =========================
-   IDENTITY
-========================= */
-
-let identityType = "username";
-
-
-$$(".type-tab").forEach(button => {
-
-  button.addEventListener("click", () => {
-
-    $$(".type-tab").forEach(x =>
-      x.classList.remove("active")
-    );
-
-    button.classList.add("active");
-
-    identityType = button.dataset.type;
-
-    $("#identityInput").placeholder =
-      identityType === "username"
-        ? "Exemple : kz4626"
-        : "Exemple : test@example.com";
-
-  });
-
-});
-
-
-$$("[data-example]").forEach(button => {
-
-  button.addEventListener("click", () => {
-
-    $("#identityInput").value =
-      button.dataset.example;
-
-  });
-
-});
-
-
-$("#identityForm").addEventListener("submit", event => {
-
-  event.preventDefault();
-
-  const value = $("#identityInput").value.trim();
-
-  if (!value) {
-
-    showToast("Entre une valeur");
-
-    return;
-  }
-
-  if (identityType === "email" && !isValidEmail(value)) {
-
-    showToast("Adresse e-mail invalide");
-
-    return;
-  }
-
-  if (identityType === "username" &&
-      !/^[a-zA-Z0-9._-]{2,50}$/.test(value)) {
-
-    showToast(
-      "Pseudo invalide : lettres, chiffres, . _ -"
-    );
-
-    return;
-  }
-
-  runIdentitySearch(value);
-
-});
-
-
-function runIdentitySearch(value) {
-
-  saveHistory(identityType, value);
-
-  const container = $("#identityResults");
-
-  container.innerHTML = "";
-
-  if (identityType === "username") {
-
-    const username = encodeURIComponent(value);
-
-    const sources = [
-
-      {
-        name: "Google",
-        url:
-          `https://www.google.com/search?q=%22${username}%22`,
-        description:
-          "Recherche générale du pseudo"
-      },
-
-      {
-        name: "Bing",
-        url:
-          `https://www.bing.com/search?q=%22${username}%22`,
-        description:
-          "Recherche sur Bing"
-      },
-
-      {
-        name: "GitHub",
-        url:
-          `https://github.com/search?q=${username}&type=users`,
-        description:
-          "Utilisateurs GitHub"
-      },
-
-      {
-        name: "Reddit",
-        url:
-          `https://www.reddit.com/search/?q=${username}`,
-        description:
-          "Recherche Reddit"
-      },
-
-      {
-        name: "DuckDuckGo",
-        url:
-          `https://duckduckgo.com/?q=%22${username}%22`,
-        description:
-          "Recherche DuckDuckGo"
-      }
-
-    ];
-
-    renderSourceResults(
-      container,
-      `Sources pour « ${value} »`,
-      sources
-    );
-
-    return;
-  }
-
-
-  const email = encodeURIComponent(value);
-
-  const sources = [
-
-    {
-      name: "Google",
-      url:
-        `https://www.google.com/search?q=%22${email}%22`,
-      description:
-        "Recherche publique de l'adresse"
-    },
-
-    {
-      name: "Bing",
-      url:
-        `https://www.bing.com/search?q=%22${email}%22`,
-      description:
-        "Recherche Bing"
-    },
-
-    {
-      name: "Have I Been Pwned",
-      url:
-        "https://haveibeenpwned.com/",
-      description:
-        "Vérification via le service officiel"
-    }
-
-  ];
-
-  renderSourceResults(
-    container,
-    `Sources pour « ${value} »`,
-    sources
-  );
-
-}
-
-
-function renderSourceResults(container, title, sources) {
-
-  const heading = document.createElement("div");
-
-  heading.className = "result-card";
-
-  heading.innerHTML = `
-    <div class="result-left">
-      <div class="result-title">
-        <span>●</span>
-        ${escapeHTML(title)}
-      </div>
-      <div class="result-url">
-        ${sources.length} sources publiques disponibles
-      </div>
-    </div>
-  `;
-
-  container.appendChild(heading);
-
-
-  sources.forEach(source => {
-
-    const card = document.createElement("div");
-
-    card.className = "result-card";
-
-    card.innerHTML = `
-      <div class="result-left">
-        <div class="result-title">
-          <span>↗</span>
-          ${escapeHTML(source.name)}
-        </div>
-
-        <div class="result-url">
-          ${escapeHTML(source.description)}
-        </div>
-      </div>
-
-      <button class="result-action">
-        OPEN
-      </button>
-    `;
-
-    card.querySelector("button")
-      .addEventListener("click", () => {
-
-        safeOpen(source.url);
-
-      });
-
-    container.appendChild(card);
-
-  });
-
-}
-
-
-/* =========================
-   NETWORK
-========================= */
-
-$("#networkForm").addEventListener("submit", event => {
-
-  event.preventDefault();
-
-  const value = $("#networkInput").value.trim();
-
-  if (!value) {
-
-    showToast("Entre une IP ou un domaine");
-
-    return;
-  }
-
-  runNetworkSearch(value);
-
-});
-
-
-async function runNetworkSearch(value) {
-
-  saveHistory("network", value);
-
-  const container = $("#networkResults");
-
-  container.innerHTML = `
-    <div class="empty-state">
-      <div class="empty-icon">◌</div>
-      <h3>Analyse en cours...</h3>
-      <p>Récupération des informations publiques.</p>
-    </div>
-  `;
-
-
-  if (isValidIP(value)) {
-
-    await lookupIP(value);
-
-    return;
-  }
-
-
-  const domain = normalizeDomain(value);
-
-  if (!domain) {
-
-    renderNetworkError(
-      "Adresse invalide",
-      "Entre une IP ou un domaine valide."
-    );
-
-    return;
-  }
-
-
-  await lookupDomain(domain);
-
-}
-
-
-async function lookupIP(ip) {
-
-  const container = $("#networkResults");
-
-  try {
-
-    const response = await fetch(
-      `https://ipwho.is/${encodeURIComponent(ip)}`
-    );
-
-    if (!response.ok) {
-      throw new Error("API unavailable");
-    }
-
-    const data = await response.json();
-
-    if (!data.success) {
-      throw new Error(data.message || "IP inconnue");
-    }
-
-
-    container.innerHTML = "";
-
-
-    addNetworkCard(
-      "Adresse IP",
-      data.ip || ip
-    );
-
-    addNetworkCard(
-      "Type",
-      data.type || "—"
-    );
-
-    addNetworkCard(
-      "Pays",
-      data.country || "—"
-    );
-
-    addNetworkCard(
-      "Région",
-      data.region || "—"
-    );
-
-    addNetworkCard(
-      "Ville",
-      data.city || "—"
-    );
-
-    addNetworkCard(
-      "Organisation",
-      data.connection?.org || "—"
-    );
-
-    addNetworkCard(
-      "ISP",
-      data.connection?.isp || "—"
-    );
-
-    addNetworkCard(
-      "ASN",
-      data.connection?.asn || "—"
-    );
-
-
-    const mapUrl =
-      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-        `${data.latitude},${data.longitude}`
-      )}`;
-
-
-    addActionCard(
-      "Localisation approximative",
-      "Ouvrir les coordonnées dans Google Maps",
-      mapUrl
-    );
-
-
-  } catch (error) {
-
-    renderNetworkError(
-      "Impossible de récupérer les données",
-      "L'API publique n'a pas répondu. Tu peux quand même utiliser les outils externes ci-dessous."
-    );
-
-
-    addActionCard(
-      "IPInfo",
-      "Ouvrir la recherche externe",
-      `https://ipinfo.io/${encodeURIComponent(ip)}`
-    );
-
-    addActionCard(
-      "Google",
-      "Rechercher cette IP",
-      `https://www.google.com/search?q=${encodeURIComponent(ip)}`
-    );
-
-  }
-
-}
-
-
-async function lookupDomain(domain) {
-
-  const container = $("#networkResults");
-
-  try {
-
-    const response = await fetch(
-      `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`
-    );
-
-    if (!response.ok) {
-      throw new Error("DNS unavailable");
-    }
-
-    const data = await response.json();
-
-
-    container.innerHTML = "";
-
-
-    addNetworkCard(
-      "Domaine",
-      domain
-    );
-
-
-    const answers = data.Answer || [];
-
-    if (answers.length) {
-
-      answers.forEach(answer => {
-
-        addNetworkCard(
-          `DNS ${answer.type}`,
-          answer.data
-        );
-
-      });
-
-    } else {
-
-      addNetworkCard(
-        "DNS",
-        "Aucun enregistrement A trouvé"
-      );
-
-    }
-
-
-    addActionCard(
-      "WHOIS",
-      "Rechercher les informations du domaine",
-      `https://who.is/whois/${encodeURIComponent(domain)}`
-    );
-
-
-    addActionCard(
-      "Google",
-      "Rechercher le domaine",
-      `https://www.google.com/search?q=${encodeURIComponent(domain)}`
-    );
-
-
-    addActionCard(
-      "SecurityTrails",
-      "Ouvrir la recherche",
-      `https://securitytrails.com/domain/${encodeURIComponent(domain)}/history/a`
-    );
-
-
-  } catch {
-
-    renderNetworkError(
-      "Analyse DNS impossible",
-      "Le service DNS n'a pas répondu."
-    );
-
-  }
-
-}
-
-
-function addNetworkCard(title, value) {
-
-  const container = $("#networkResults");
-
-  const card = document.createElement("div");
-
-  card.className = "result-card";
-
-  card.innerHTML = `
-    <div class="result-left">
-      <div class="result-title">
-        <span>●</span>
-        ${escapeHTML(title)}
-      </div>
-
-      <div class="result-url">
-        ${escapeHTML(value)}
-      </div>
-    </div>
-  `;
-
-  container.appendChild(card);
-
-}
-
-
-function addActionCard(title, description, url) {
-
-  const container = $("#networkResults");
-
-  const card = document.createElement("div");
-
-  card.className = "result-card";
-
-  card.innerHTML = `
-    <div class="result-left">
-      <div class="result-title">
-        <span>↗</span>
-        ${escapeHTML(title)}
-      </div>
-
-      <div class="result-url">
-        ${escapeHTML(description)}
-      </div>
-    </div>
-
-    <button class="result-action">
-      OPEN
-    </button>
-  `;
-
-  card.querySelector("button")
-    .addEventListener("click", () => {
-
-      safeOpen(url);
-
-    });
-
-  container.appendChild(card);
-
-}
-
-
-function renderNetworkError(title, description) {
-
-  $("#networkResults").innerHTML = `
-    <div class="empty-state">
-      <div class="empty-icon">!</div>
-      <h3>${escapeHTML(title)}</h3>
-      <p>${escapeHTML(description)}</p>
-    </div>
-  `;
-
-}
-
-
-/* =========================
-   IMAGE SEARCH
-========================= */
-
-$("#imageSearchButton").addEventListener(
-  "click",
-  () => {
-
-    const value = $("#imageUrl").value.trim();
-
-    if (!value) {
-
-      showToast("Entre une URL d'image");
-
-      return;
-    }
-
-
-    try {
-
-      const url = new URL(value);
-
-      if (!["http:", "https:"].includes(url.protocol)) {
-        throw new Error();
-      }
-
-      runImageSearch(url.href);
-
-    } catch {
-
-      showToast("URL d'image invalide");
-
-    }
-
-  }
-);
-
-
-function runImageSearch(imageUrl) {
-
-  const container = $("#imageResults");
-
-  container.innerHTML = "";
-
-
-  const encoded = encodeURIComponent(imageUrl);
-
-
-  const sources = [
-
-    {
-      name: "Google Lens",
-      description: "Recherche visuelle Google",
-      url:
-        `https://lens.google.com/uploadbyurl?url=${encoded}`
-    },
-
-    {
-      name: "Bing Visual Search",
-      description: "Recherche visuelle Bing",
-      url:
-        `https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl=${encoded}`
-    },
-
-    {
-      name: "Yandex Images",
-      description: "Recherche d'image Yandex",
-      url:
-        `https://yandex.com/images/search?rpt=imageview&url=${encoded}`
-    }
-
-  ];
-
-
-  renderSourceResults(
-    container,
-    "Reverse image search",
-    sources
-  );
-
-
-  showToast("Moteurs de recherche prêts");
-
-}
-
-
-/* =========================
-   DORK GENERATOR
-========================= */
-
-$("#dorkType").addEventListener("change", () => {
-
-  const type = $("#dorkType").value;
-
-  $("#fileTypeContainer")
-    .classList.toggle(
-      "hidden",
-      type !== "filetype"
-    );
-
-});
-
-
-$("#generateDork").addEventListener(
-  "click",
-  generateDork
-);
-
-
-function generateDork() {
-
-  const query =
-    $("#dorkQuery").value.trim();
-
-  const type =
-    $("#dorkType").value;
-
-
-  if (!query) {
-
-    showToast("Entre une recherche");
-
-    return;
-  }
-
-
-  let dork = "";
-
-
-  switch (type) {
-
-    case "site":
-
-      dork = `site:${query}`;
-
-      break;
-
-
-    case "filetype":
-
-      dork =
-        `site:${query} filetype:${$("#fileType").value}`;
-
-      break;
-
-
-    case "intitle":
-
-      dork = `intitle:"${query}"`;
-
-      break;
-
-
-    case "inurl":
-
-      dork = `inurl:${query}`;
-
-      break;
-
-
-    case "combined":
-
-      dork =
-        `site:${query} -www "login"`;
-
-      break;
-
-  }
-
-
-  $("#dorkText").textContent = dork;
-
-  $("#dorkOutput")
-    .classList.remove("hidden");
-
-}
-
-
-$("#copyDork").addEventListener(
-  "click",
-  async () => {
-
-    const text =
-      $("#dorkText").textContent;
-
-    try {
-
-      await navigator.clipboard.writeText(text);
-
-      showToast("Dork copié");
-
-    } catch {
-
-      showToast(
-        "Copie automatique non disponible"
-      );
-
-    }
-
-  }
-);
-
-
-$("#openDork").addEventListener(
-  "click",
-  () => {
-
-    const query =
-      $("#dorkText").textContent.trim();
-
-    if (!query) {
-      return;
-    }
-
-    safeOpen(
-      `https://www.google.com/search?q=${encodeURIComponent(query)}`
-    );
-
-  }
-);
-
-
-$$("[data-dork]").forEach(button => {
-
-  button.addEventListener("click", () => {
-
-    const type = button.dataset.dork;
-
-    $("#dorkType").value = type;
-
-    $("#dorkType").dispatchEvent(
-      new Event("change")
-    );
-
-    $("#dorkQuery").focus();
-
-    showToast(
-      `${type}: sélectionné`
-    );
-
-  });
-
-});
-
-
-/* =========================
-   UTILITIES
-========================= */
-
-$("#validateIP").addEventListener(
-  "click",
-  () => {
-
-    const value =
-      $("#ipValidatorInput").value.trim();
-
-    const result =
-      $("#ipValidationResult");
-
-
-    if (isValidIP(value)) {
-
-      result.className =
-        "validation ok";
-
-      result.textContent =
-        "✓ Adresse IP valide";
-
-    } else {
-
-      result.className =
-        "validation bad";
-
-      result.textContent =
-        "✕ Adresse IP invalide";
-
-    }
-
-  }
-);
-
-
-$("#validateEmail").addEventListener(
-  "click",
-  () => {
-
-    const value =
-      $("#emailValidatorInput").value.trim();
-
-    const result =
-      $("#emailValidationResult");
-
-
-    if (isValidEmail(value)) {
-
-      result.className =
-        "validation ok";
-
-      result.textContent =
-        "✓ Format e-mail valide";
-
-    } else {
-
-      result.className =
-        "validation bad";
-
-      result.textContent =
-        "✕ Format e-mail invalide";
-
-    }
-
-  }
-);
-
-
-$("#parseURL").addEventListener(
-  "click",
-  () => {
-
-    const value =
-      $("#urlParserInput").value.trim();
-
-    const result =
-      $("#urlParserResult");
-
-
-    try {
-
-      const url =
-        new URL(
-          /^https?:\/\//i.test(value)
-            ? value
-            : `https://${value}`
-        );
-
-
-      result.className =
-        "validation ok";
-
-
-      result.innerHTML = `
-        <strong>Protocol :</strong>
-        ${escapeHTML(url.protocol)}
-        <br>
-
-        <strong>Host :</strong>
-        ${escapeHTML(url.hostname)}
-        <br>
-
-        <strong>Path :</strong>
-        ${escapeHTML(url.pathname)}
-        <br>
-
-        <strong>Port :</strong>
-        ${escapeHTML(url.port || "default")}
-      `;
-
-
-    } catch {
-
-      result.className =
-        "validation bad";
-
-      result.textContent =
-        "✕ URL invalide";
-
-    }
-
-  }
-);
-
-
-/* =========================
-   STARTUP
-========================= */
-
-console.log(
-  "%cOSINT.WEB V3 ONLINE",
-  "color:#55e6a5;font-weight:bold"
-
-);body {
-    background: #05070b !important;
-    color: white !important;
-}
-
-h1 {
-    color: #00ff9d !important;
-}
+.mini-title {
+  margin: 15px 8px 8px
