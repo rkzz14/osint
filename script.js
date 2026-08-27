@@ -1,4 +1,4 @@
-"use strict";
+alert("SCRIPT JS CHARGE !");
 
 /* =========================
    HELPERS
