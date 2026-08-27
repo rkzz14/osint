@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSINT.WEB</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+  <div class="logo">● OSINT<span>.WEB</span></div>
+  <div class="status">● SOURCES PUBLIQUES</div>
+</header>
+
+<main>
+
+  <section class="hero">
+    <p>OPEN SOURCE INTELLIGENCE</p>
+    <h1>Recherche publique</h1>
+    <h2>Un petit dashboard OSINT directement utilisable sur téléphone.</h2>
+  </section>
+
+  <section class="search-box">
+
+    <div class="tabs">
+      <button class="tab active" data-type="pseudo">👤 Pseudo</button>
+      <button class="tab" data-type="email">✉️ E-mail</button>
+      <button class="tab" data-type="domain">🌐 Domaine</button>
+      <button class="tab" data-type="url">🔗 URL</button>
+    </div>
+
+    <label id="label">Pseudo à rechercher</label>
+
+    <div class="search">
+      <input id="query" placeholder="ex. shadow_42">
+      <button id="searchButton">Rechercher</button>
+    </div>
+
+    <small id="hint">
+      Les recherches utilisent uniquement des sources publiques.
+    </small>
+
+  </section>
+
+  <section id="results" class="results hidden">
+    <h2>Résultats</h2>
+    <div id="resultGrid"></div>
+  </section>
+
+  <section class="warning">
+    ⚠️ <b>Utilisation responsable</b>
+    <p>
+      Ce site sert à organiser des recherches à partir d'informations
+      publiques. Il ne permet pas d'accéder à des comptes privés ou de
+      contourner des protections.
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  OSINT.WEB — Recherche publique
+</footer>
+
+<script src="script.js"></script>
+
+</body>
+</html>
