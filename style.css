@@ -1,224 +1,423 @@
-* {
-  box-sizing: border-box;
-}
+  const configs = {
 
-body {
-  margin: 0;
-  background: #080b10;
-  color: #edf3f8;
-  font-family: Arial, sans-serif;
-}
+  pseudo: {
 
-header {
-  height: 65px;
-  padding: 0 5%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #202a37;
-}
+    label: "Pseudo à rechercher",
 
-.logo {
-  font-weight: bold;
-  letter-spacing: 2px;
-}
+    placeholder: "ex. shadow_42",
 
-.logo:first-letter {
-  color: #35d07f;
-}
+    hint: "Recherche ce pseudo sur plusieurs sources publiques.",
 
-.logo span {
-  color: #8793a3;
-}
+    links: q => [
 
-.status {
-  color: #35d07f;
-  font-size: 11px;
-}
+      [
+        "Google",
+        `https://www.google.com/search?q=${encodeURIComponent('"' + q + '"')}`
+      ],
 
-main {
-  width: 92%;
-  max-width: 900px;
-  margin: auto;
-  padding: 60px 0;
-}
+      [
+        "Reddit",
+        `https://www.reddit.com/search/?q=${encodeURIComponent(q)}`
+      ],
 
-.hero {
-  text-align: center;
-  margin-bottom: 35px;
-}
+      [
+        "GitHub",
+        `https://github.com/search?q=${encodeURIComponent(q)}&type=users`
+      ],
 
-.hero p {
-  color: #35d07f;
-  font-size: 12px;
-  font-weight: bold;
-  letter-spacing: 3px;
-}
+      [
+        "X / Twitter",
+        `https://x.com/search?q=${encodeURIComponent(q)}`
+      ],
 
-.hero h1 {
-  font-size: clamp(40px, 10vw, 70px);
-  margin: 10px 0;
-}
+      [
+        "Instagram",
+        `https://www.google.com/search?q=${encodeURIComponent('site:instagram.com "' + q + '"')}`
+      ],
 
-.hero h2 {
-  color: #8793a3;
-  font-size: 15px;
-  font-weight: normal;
-}
+      [
+        "TikTok",
+        `https://www.google.com/search?q=${encodeURIComponent('site:tiktok.com "' + q + '"')}`
+      ]
 
-.search-box {
-  background: #10151d;
-  border: 1px solid #202a37;
-  border-radius: 18px;
-  padding: 18px;
-}
+    ]
+  },
 
-.tabs {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 7px;
-  margin-bottom: 25px;
-}
 
-.tab {
-  padding: 13px 5px;
-  border: 1px solid #202a37;
-  border-radius: 10px;
-  background: #0b1017;
-  color: #8793a3;
-  cursor: pointer;
-}
+  email: {
 
-.tab.active {
-  background: #123322;
-  border-color: #35d07f;
-  color: white;
-}
+    label: "Adresse e-mail",
 
-label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 13px;
-}
+    placeholder: "exemple@mail.com",
 
-.search {
-  display: flex;
-  gap: 10px;
-}
+    hint: "Recherche cette adresse sur des sources publiques.",
 
-input {
-  flex: 1;
-  min-width: 0;
-  padding: 15px;
-  border-radius: 10px;
-  border: 1px solid #202a37;
-  background: #080b10;
-  color: white;
-  outline: none;
-}
+    links: q => [
 
-input:focus {
-  border-color: #35d07f;
-}
+      [
+        "Google",
+        `https://www.google.com/search?q=${encodeURIComponent('"' + q + '"')}`
+      ],
 
-#searchButton {
-  border: none;
-  border-radius: 10px;
-  padding: 0 20px;
-  background: #35d07f;
-  color: #061109;
-  font-weight: bold;
-  cursor: pointer;
-}
+      [
+        "DuckDuckGo",
+        `https://duckduckgo.com/?q=${encodeURIComponent('"' + q + '"')}`
+      ],
 
-small {
-  display: block;
-  color: #8793a3;
-  margin-top: 10px;
-}
+      [
+        "Have I Been Pwned",
+        "https://haveibeenpwned.com/"
+      ],
 
-.results {
-  margin-top: 35px;
-}
+      [
+        "Gravatar",
+        `https://en.gravatar.com/site/check/${encodeURIComponent(q)}`
+      ]
 
-.hidden {
-  display: none;
-}
+    ]
+  },
 
-#resultGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
 
-.result {
-  display: block;
-  padding: 18px;
-  background: #10151d;
-  border: 1px solid #202a37;
-  border-radius: 12px;
-  color: white;
-  text-decoration: none;
-}
+  domain: {
 
-.result:hover {
-  border-color: #35d07f;
-}
+    label: "Domaine",
 
-.result-name {
-  font-weight: bold;
-  margin-bottom: 7px;
-}
+    placeholder: "example.com",
 
-.result-url {
-  color: #8793a3;
-  font-size: 12px;
-}
+    hint: "Analyse rapide d'un domaine avec des services publics.",
 
-.warning {
-  margin-top: 25px;
-  padding: 18px;
-  border: 1px solid #49371f;
-  border-radius: 12px;
-  color: #ffbd70;
-}
+    links: q => {
 
-.warning p {
-  color: #8793a3;
-  font-size: 13px;
-  line-height: 1.5;
-}
+      const domain = q
+        .replace(/^https?:\/\//, "")
+        .split("/")[0];
 
-footer {
-  text-align: center;
-  color: #8793a3;
-  font-size: 11px;
-  padding: 25px;
-}
+      return [
 
-@media (max-width: 600px) {
+        [
+          "Google site:",
+          `https://www.google.com/search?q=${encodeURIComponent("site:" + domain)}`
+        ],
 
-  main {
-    padding-top: 40px;
+        [
+          "ICANN Lookup",
+          `https://lookup.icann.org/en/lookup?name=${encodeURIComponent(domain)}`
+        ],
+
+        [
+          "DNSlytics",
+          `https://dnslytics.com/domain/${encodeURIComponent(domain)}`
+        ],
+
+        [
+          "SecurityTrails",
+          `https://securitytrails.com/domain/${encodeURIComponent(domain)}`
+        ]
+
+      ];
+    }
+  },
+
+
+  url: {
+
+    label: "URL",
+
+    placeholder: "https://example.com",
+
+    hint: "Analyse une URL avec plusieurs services.",
+
+    links: q => [
+
+      [
+        "Google",
+        `https://www.google.com/search?q=${encodeURIComponent(q)}`
+      ],
+
+      [
+        "VirusTotal",
+        `https://www.virustotal.com/gui/search/${encodeURIComponent(q)}`
+      ],
+
+      [
+        "URLScan",
+        `https://urlscan.io/search/#${encodeURIComponent(q)}`
+      ],
+
+      [
+        "Wayback Machine",
+        `https://web.archive.org/web/*/${encodeURIComponent(q)}`
+      ]
+
+    ]
+  },
+
+
+  image: {
+
+    label: "URL d'une image",
+
+    placeholder: "https://example.com/image.jpg",
+
+    hint: "Recherche une image avec plusieurs moteurs.",
+
+    links: q => [
+
+      [
+        "Google Lens",
+        `https://lens.google.com/uploadbyurl?url=${encodeURIComponent(q)}`
+      ],
+
+      [
+        "TinEye",
+        `https://tineye.com/search?url=${encodeURIComponent(q)}`
+      ],
+
+      [
+        "Google Images",
+        `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q)}`
+      ]
+
+    ]
+  },
+
+
+  ip: {
+
+    label: "Adresse IP",
+
+    placeholder: "ex. 8.8.8.8",
+
+    hint: "Recherche publique autour d'une adresse IP.",
+
+    links: q => [
+
+      [
+        "Google",
+        `https://www.google.com/search?q=${encodeURIComponent('"' + q + '"')}`
+      ],
+
+      [
+        "AbuseIPDB",
+        `https://www.abuseipdb.com/check/${encodeURIComponent(q)}`
+      ],
+
+      [
+        "IPinfo",
+        `https://ipinfo.io/${encodeURIComponent(q)}`
+      ],
+
+      [
+        "VirusTotal",
+        `https://www.virustotal.com/gui/ip-address/${encodeURIComponent(q)}`
+      ]
+
+    ]
+  },
+
+
+  phone: {
+
+    label: "Numéro de téléphone",
+
+    placeholder: "+33 6 12 34 56 78",
+
+    hint: "Recherche publique du numéro sur le web.",
+
+    links: q => [
+
+      [
+        "Google",
+        `https://www.google.com/search?q=${encodeURIComponent('"' + q + '"')}`
+      ],
+
+      [
+        "DuckDuckGo",
+        `https://duckduckgo.com/?q=${encodeURIComponent('"' + q + '"')}`
+      ],
+
+      [
+        "Bing",
+        `https://www.bing.com/search?q=${encodeURIComponent('"' + q + '"')}`
+      ]
+
+    ]
+  },
+
+
+  dork: {
+
+    label: "Recherche Google avancée",
+
+    placeholder: "site:example.com filetype:pdf",
+
+    hint: "Entre directement une requête de recherche avancée.",
+
+    links: q => [
+
+      [
+        "Google",
+        `https://www.google.com/search?q=${encodeURIComponent(q)}`
+      ],
+
+      [
+        "Bing",
+        `https://www.bing.com/search?q=${encodeURIComponent(q)}`
+      ],
+
+      [
+        "DuckDuckGo",
+        `https://duckduckgo.com/?q=${encodeURIComponent(q)}`
+      ]
+
+    ]
   }
 
-  .status {
-    display: none;
+};
+
+
+let currentType = "pseudo";
+
+
+const tabs = document.querySelectorAll(".tab");
+
+const label = document.getElementById("label");
+
+const input = document.getElementById("query");
+
+const button = document.getElementById("searchButton");
+
+const results = document.getElementById("results");
+
+const grid = document.getElementById("resultGrid");
+
+const clearButton = document.getElementById("clearButton");
+
+const hint = document.getElementById("hint");
+
+
+/* CHANGEMENT D'OUTIL */
+
+tabs.forEach(tab => {
+
+  tab.addEventListener("click", () => {
+
+    currentType = tab.dataset.type;
+
+    tabs.forEach(t => {
+      t.classList.remove("active");
+    });
+
+    tab.classList.add("active");
+
+    label.textContent =
+      configs[currentType].label;
+
+    input.placeholder =
+      configs[currentType].placeholder;
+
+    hint.textContent =
+      configs[currentType].hint;
+
+    input.value = "";
+
+    input.focus();
+
+  });
+
+});
+
+
+/* RECHERCHE */
+
+button.addEventListener("click", search);
+
+
+input.addEventListener("keydown", event => {
+
+  if (event.key === "Enter") {
+    search();
   }
 
-  .tabs {
-    grid-template-columns: repeat(2, 1fr);
+});
+
+
+function search() {
+
+  const value = input.value.trim();
+
+  if (!value) {
+
+    alert("Entre une recherche.");
+
+    return;
   }
 
-  .search {
-    flex-direction: column;
-  }
 
-  #searchButton {
-    height: 48px;
-  }
+  const links =
+    configs[currentType].links(value);
 
-  #resultGrid {
-    grid-template-columns: 1fr;
-  }
+
+  grid.innerHTML = "";
+
+
+  links.forEach(([name, url]) => {
+
+    const element =
+      document.createElement("a");
+
+
+    element.className = "result";
+
+
+    element.href = url;
+
+
+    element.target = "_blank";
+
+
+    element.rel =
+      "noopener noreferrer";
+
+
+    element.innerHTML = `
+
+      <div class="result-name">
+        ${name} ↗
+      </div>
+
+      <div class="result-url">
+        Ouvrir la source
+      </div>
+
+    `;
+
+
+    grid.appendChild(element);
+
+  });
+
+
+  results.classList.remove("hidden");
+
+
+  results.scrollIntoView({
+    behavior: "smooth"
+  });
+
 }
+
+
+/* EFFACER */
+
+clearButton.addEventListener("click", () => {
+
+  grid.innerHTML = "";
+
+  results.classList.add("hidden");
+
+  input.value = "";
+
+  input.focus();
+
+});
